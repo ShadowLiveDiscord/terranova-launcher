@@ -1,0 +1,63 @@
+{
+  "instance": {
+    "name": "Mon Instance",
+    "version": "1.20.4",
+    "loader": "Forge 47.2.0",
+    "java": "17",
+    "description": "Ma configuration personnelle avec mes mods préférés pour une expérience survie optimale !",
+    "icon": "assets/icons.png",
+    "mods_count": 12,
+    "resource_packs": 3,
+    "shaders": "BSL v8.2",
+    "ram_mb": 6144,
+    "path": "C:\\TerraNova\\instances\\mon-instance",
+    "last_launch": "Aujourd'hui à 14:35",
+    "playtime": "12h 47m",
+    "mods": [
+      { "name": "Biomes O' Plenty",      "version": "18.0.0.688", "enabled": true },
+      { "name": "Optifine",              "version": "HD U I6",    "enabled": true },
+      { "name": "JourneyMap",            "version": "5.9.18",     "enabled": true },
+      { "name": "Chisel & Bits",         "version": "2.5.0",      "enabled": true },
+      { "name": "Inventory Tweaks",      "version": "1.64",       "enabled": true },
+      { "name": "Just Enough Items",     "version": "15.3.0",     "enabled": true },
+      { "name": "Waystones",             "version": "14.1.3",     "enabled": true },
+      { "name": "Farmer's Delight",      "version": "1.2.4",      "enabled": true },
+      { "name": "Alex's Mobs",           "version": "1.22.8",     "enabled": true },
+      { "name": "Tinkers Construct",     "version": "3.8.4",      "enabled": true },
+      { "name": "Immersive Engineering", "version": "10.1.0",     "enabled": true },
+      { "name": "Applied Energistics",   "version": "15.2.1",     "enabled": false }
+    ]
+  },
+  "launcher": {
+    "version": "1.2.0",
+    "latest_version": "1.2.0",
+    "update_url": ""
+  },
+  "admin": {
+    "instance_version": "2",
+    "local_version": "1",
+    "changelog": "Ajout de 3 nouveaux mods et mise à jour Forge 47.2.0. BSL Shaders activé par défaut.",
+    "force_update": false,
+    "manifest_url": "https://cdn.terranova.fr/instance.json",
+    "files": [
+      {
+        "path": "mods/biomes-o-plenty-1.20.4.jar",
+        "url": "https://cdn.terranova.fr/mods/biomes-o-plenty-1.20.4.jar",
+        "sha256": "placeholder",
+        "size": 8234567
+      },
+      {
+        "path": "mods/optifine-1.20.4-HD-U-I6.jar",
+        "url": "https://cdn.terranova.fr/mods/optifine-1.20.4-HD-U-I6.jar",
+        "sha256": "placeholder",
+        "size": 4120000
+      },
+      {
+        "path": "mods/journeymap-1.20.4.jar",
+        "url": "https://cdn.terranova.fr/mods/journeymap-1.20.4.jar",
+        "sha256": "placeholder",
+        "size": 2890000
+      }
+    ]
+  }
+}

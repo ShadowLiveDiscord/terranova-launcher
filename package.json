@@ -1,0 +1,17 @@
+{
+  "name": "terranova-launcher",
+  "version": "1.0.0",
+  "description": "TerraNova Minecraft Launcher",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0",
+    "node-fetch": "^2.7.0"
+  }
+}
