@@ -198,6 +198,17 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .update-dismiss { background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; padding: 4px 8px; }
 .update-dismiss:hover { color: var(--text); }
 
+.app-update-banner {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 850;
+  background: linear-gradient(90deg, #102234, #0c1a28);
+  border-top: 1px solid var(--cyan);
+  display: flex; align-items: center; gap: 12px; padding: 9px 16px;
+}
+.app-update-banner .update-icon { color: var(--cyan); }
+.app-update-banner .update-text strong { color: var(--cyan); }
+.app-update-banner .mc-progress-wrap { width: 160px; flex-shrink: 0; }
+.app-update-banner .update-btn:disabled { opacity: .5; cursor: default; }
+
 /* ── APP LAYOUT ── */
 .app-layout {
   position: fixed; top: 32px; left: 0; right: 0; bottom: 0;

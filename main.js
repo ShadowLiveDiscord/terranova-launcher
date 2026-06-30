@@ -4,6 +4,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const AuthManager   = require('./src/auth/AuthManager');
 const UpdateManager = require('./src/update/UpdateManager');
+const AppUpdater    = require('./src/update/AppUpdater');
 
 app.commandLine.appendSwitch('disable-features', 'NetworkService');
 app.commandLine.appendSwitch('no-sandbox');
@@ -31,9 +32,15 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
   mainWindow.once('ready-to-show', () => mainWindow.show());
+
+  AppUpdater.init(mainWindow);
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  // Vérification auto au démarrage (silencieuse si en dev ou si à jour)
+  setTimeout(() => AppUpdater.checkForUpdates(), 3000);
+});
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
 // ── Titlebar ──────────────────────────────────────────────────────────────────
@@ -92,6 +99,11 @@ ipcMain.handle('update:start', async (event, { instanceDir, files }) => {
     return { success: false, error: e.message };
   }
 });
+
+// ── Mise à jour automatique du launcher (electron-updater / GitHub Releases) ──
+ipcMain.handle('app-update:check',   () => AppUpdater.checkForUpdates());
+ipcMain.handle('app-update:download', () => AppUpdater.downloadUpdate());
+ipcMain.on('app-update:install', () => AppUpdater.quitAndInstall());
 
 // ── Lancement du jeu ─────────────────────────────────────────────────────────
 ipcMain.on('launch-game', (event, opts) => {

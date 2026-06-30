@@ -10,6 +10,10 @@ const ipc = ipcRenderer ? {
   checkUpdate:   (url)              => ipcRenderer.invoke('update:check', { url }),
   startUpdate:   (instanceDir, files) => ipcRenderer.invoke('update:start', { instanceDir, files }),
   onProgress:    (cb)              => ipcRenderer.on('update:progress', (_, data) => cb(data)),
+  checkAppUpdate:   () => ipcRenderer.invoke('app-update:check'),
+  downloadAppUpdate: () => ipcRenderer.invoke('app-update:download'),
+  installAppUpdate:  () => ipcRenderer.send('app-update:install'),
+  onAppUpdateStatus: (cb) => ipcRenderer.on('app-update:status', (_, data) => cb(data)),
 } : null;
 
 // ── Titlebar ──
@@ -288,6 +292,79 @@ function openFolder() {}
 function quitApp() { ipcRenderer?.send('close-window'); }
 function checkUpdate() { checkAdminUpdate(); }
 
+// ── Mise à jour automatique du launcher (electron-updater) ───────────────────
+let appUpdateState = 'idle'; // idle | available | downloading | downloaded
+
+function showAppUpdateBanner() {
+  document.getElementById('app-update-banner').style.display = 'flex';
+}
+function dismissAppUpdate() {
+  document.getElementById('app-update-banner').style.display = 'none';
+}
+
+function handleAppUpdateStatus(data) {
+  const banner   = document.getElementById('app-update-banner');
+  const title    = document.getElementById('app-update-title');
+  const sub      = document.getElementById('app-update-sub');
+  const btn      = document.getElementById('app-update-action-btn');
+  const wrap     = document.getElementById('app-update-progress-wrap');
+  const bar      = document.getElementById('app-update-bar');
+  const pct      = document.getElementById('app-update-pct');
+
+  switch (data.state) {
+    case 'available':
+      appUpdateState = 'available';
+      title.textContent = 'Mise à jour du launcher disponible';
+      sub.textContent   = `Version ${data.version} prête à être téléchargée.`;
+      btn.textContent   = 'Télécharger';
+      btn.disabled      = false;
+      wrap.style.display = 'none';
+      showAppUpdateBanner();
+      break;
+
+    case 'downloading':
+      appUpdateState = 'downloading';
+      title.textContent = 'Téléchargement de la mise à jour...';
+      sub.textContent   = `${Math.round((data.transferred || 0) / 1e6)} Mo / ${Math.round((data.total || 0) / 1e6)} Mo`;
+      btn.disabled       = true;
+      btn.textContent    = 'Téléchargement...';
+      wrap.style.display = 'block';
+      bar.style.width    = Math.round(data.pct * 100) + '%';
+      pct.textContent    = Math.round(data.pct * 100) + '%';
+      showAppUpdateBanner();
+      break;
+
+    case 'downloaded':
+      appUpdateState = 'downloaded';
+      title.textContent = 'Mise à jour prête !';
+      sub.textContent   = `Version ${data.version} sera installée au redémarrage.`;
+      btn.textContent    = 'Redémarrer et installer';
+      btn.disabled        = false;
+      wrap.style.display  = 'none';
+      showAppUpdateBanner();
+      break;
+
+    case 'error':
+      appUpdateState = 'idle';
+      title.textContent = 'Erreur de mise à jour';
+      sub.textContent   = data.error || 'Une erreur est survenue.';
+      btn.style.display  = 'none';
+      showAppUpdateBanner();
+      break;
+
+    // 'checking' / 'not-available' : pas de bannière, rien à faire
+  }
+}
+
+function appUpdateAction() {
+  if (!ipc) return;
+  if (appUpdateState === 'available') {
+    ipc.downloadAppUpdate();
+  } else if (appUpdateState === 'downloaded') {
+    ipc.installAppUpdate();
+  }
+}
+
 // ── Simuler une MAJ admin ──
 function simulateAdminUpdate() {
   instanceData.admin.instance_version = '99';
@@ -426,6 +503,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   loadInstance();
 
   if (ipc) {
+    ipc.onAppUpdateStatus(handleAppUpdateStatus);
+
     // Electron : tentative d'auto-login avec session sauvegardée
     const loading     = document.getElementById('login-loading');
     const loadingText = document.getElementById('login-loading-text');

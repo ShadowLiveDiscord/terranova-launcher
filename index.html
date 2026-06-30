@@ -141,8 +141,23 @@
         <button class="footer-icon" title="Paramètres du launcher" onclick="showTab('settings')">⚙</button>
       </div>
 
-      <div class="sidebar-version">Launcher v1.2.0</div>
+      <div class="sidebar-version" id="sidebar-version">Launcher v1.2.0</div>
     </aside>
+
+    <!-- BANNIÈRE MAJ LAUNCHER (electron-updater) -->
+    <div class="app-update-banner" id="app-update-banner" style="display:none">
+      <span class="update-icon">⬆</span>
+      <div class="update-text">
+        <strong id="app-update-title">Mise à jour du launcher disponible</strong>
+        <span id="app-update-sub">Une nouvelle version est prête à être téléchargée.</span>
+      </div>
+      <div class="mc-progress-wrap" id="app-update-progress-wrap" style="display:none">
+        <div class="mc-progress-fill" id="app-update-bar"></div>
+        <span class="mc-progress-label" id="app-update-pct">0%</span>
+      </div>
+      <button class="update-btn" id="app-update-action-btn" onclick="appUpdateAction()">Télécharger</button>
+      <button class="update-dismiss" onclick="dismissAppUpdate()">✕</button>
+    </div>
 
     <!-- MAIN -->
     <main class="main-area">
