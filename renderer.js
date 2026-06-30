@@ -375,34 +375,63 @@ function simulateAdminUpdate() {
 // ── Session utilisateur ──
 let currentUser = null;
 
+// ── Rendu du skin (style Nebula/Helios) ───────────────────────────────────────
+// Pas de service tiers (crafatar...) : on dessine le visage directement depuis
+// la texture officielle Mojang (skin.url renvoyé par l'API Minecraft) via canvas.
+function drawSkinFace(skinUrl, canvas, onSuccess, onError) {
+  if (!skinUrl || !canvas) { onError?.(); return; }
+  const img = new Image();
+  img.onload = () => {
+    try {
+      const ctx  = canvas.getContext('2d');
+      const size = canvas.width;
+      ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0, 0, size, size);
+      // Couche de base du visage : pixels (8,8) à (16,16)
+      ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size);
+      // Couche "casque" (overlay) : pixels (40,8) à (48,16), uniquement sur les skins 64x64
+      if (img.naturalHeight >= 64) {
+        ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size);
+      }
+      onSuccess?.();
+    } catch (e) {
+      onError?.();
+    }
+  };
+  img.onerror = () => onError?.();
+  img.src = skinUrl;
+}
+
 function setUser(profile) {
   currentUser = profile;
   const letter = profile.name.charAt(0).toUpperCase();
 
   // Sidebar : lettre par défaut + skin par-dessus
   const letterEl   = document.getElementById('sidebar-avatar-letter');
-  const skinEl     = document.getElementById('sidebar-avatar-skin');
+  const skinCanvas = document.getElementById('sidebar-avatar-skin');
   const usernameEl = document.getElementById('sidebar-username');
   if (letterEl)   letterEl.textContent = letter;
   if (usernameEl) usernameEl.textContent = profile.name;
-  if (skinEl && profile.uuid) {
-    skinEl.src = `https://crafatar.com/avatars/${profile.uuid}?size=64&overlay`;
-    skinEl.onload  = () => { skinEl.classList.add('loaded'); if (letterEl) letterEl.style.display = 'none'; };
-    skinEl.onerror = () => { skinEl.style.display = 'none'; };
+  if (skinCanvas) {
+    drawSkinFace(profile.skin, skinCanvas,
+      () => { skinCanvas.classList.add('loaded'); if (letterEl) letterEl.style.display = 'none'; },
+      () => { skinCanvas.classList.remove('loaded'); if (letterEl) letterEl.style.display = 'flex'; }
+    );
   }
 
-  // Page compte : lettre + body render
+  // Page compte : lettre + skin par-dessus
   const accLetter = document.getElementById('account-avatar-letter');
-  const accSkin   = document.getElementById('account-avatar-skin');
+  const accCanvas = document.getElementById('account-avatar-skin');
   const accName   = document.getElementById('account-username');
   const accType   = document.getElementById('account-type');
   if (accLetter) accLetter.textContent = letter;
   if (accName)   accName.textContent = profile.name;
   if (accType)   accType.textContent = `Compte ${profile.type} · UUID: ${profile.uuid}`;
-  if (accSkin && profile.uuid) {
-    accSkin.src = `https://crafatar.com/renders/body/${profile.uuid}?scale=6&overlay`;
-    accSkin.onload  = () => { accSkin.classList.add('loaded'); if (accLetter) accLetter.style.display = 'none'; };
-    accSkin.onerror = () => { accSkin.style.display = 'none'; };
+  if (accCanvas) {
+    drawSkinFace(profile.skin, accCanvas,
+      () => { accCanvas.classList.add('loaded'); if (accLetter) accLetter.style.display = 'none'; },
+      () => { accCanvas.classList.remove('loaded'); if (accLetter) accLetter.style.display = 'flex'; }
+    );
   }
 }
 
@@ -451,7 +480,12 @@ async function doMicrosoftLogin() {
     steps.forEach(s => setTimeout(() => { loadingText.textContent = s.msg; }, s.delay));
     setTimeout(() => {
       loadingText.textContent = 'Connecté !';
-      setUser({ name: 'NovaPlayer_', type: 'Premium', uuid: 'a4f2c1b3-d5e6...' });
+      setUser({
+        name: 'NovaPlayer_',
+        type: 'Premium',
+        uuid: 'a4f2c1b3-d5e6...',
+        skin: 'https://assets.mojang.com/SkinTemplates/steve.png',
+      });
       setTimeout(transitionToLauncher, 500);
     }, 3800);
     return;
@@ -472,6 +506,7 @@ async function doMicrosoftLogin() {
       name: result.session.profile.name,
       type: 'Premium',
       uuid: result.session.profile.id,
+      skin: result.session.profile.skin,
     });
     setTimeout(transitionToLauncher, 500);
 
@@ -518,6 +553,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         name: result.session.profile.name,
         type: 'Premium',
         uuid: result.session.profile.id,
+        skin: result.session.profile.skin,
       });
       transitionToLauncher();
     } else {
