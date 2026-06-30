@@ -72,6 +72,11 @@ async function runUpdate(instanceDir, files, onProgress) {
 
     onProgress({ phase: 'check', file: file.path, index: i, total: files.length, filePct: 0, globalPct });
 
+    if (file.sha256 === 'placeholder') {
+      results.push({ path: file.path, status: 'skipped' });
+      continue;
+    }
+
     const localHash = await hashFile(destPath);
 
     if (localHash && localHash === file.sha256) {

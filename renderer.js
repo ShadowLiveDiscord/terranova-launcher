@@ -23,7 +23,7 @@ document.getElementById('btn-close')?.addEventListener('click',    () => ipcRend
 
 // ── Chargement de l'instance ──
 let instanceData = null;
-let localInstanceVersion = '1'; // version locale de l'instance (simulée)
+let localInstanceVersion = localStorage.getItem('localInstanceVersion') || '1';
 
 function loadInstance() {
   if (fs) {
@@ -205,6 +205,7 @@ async function startUpdate() {
 
 function finishUpdate() {
   localInstanceVersion = instanceData.admin.instance_version;
+  localStorage.setItem('localInstanceVersion', localInstanceVersion);
   document.getElementById('update-overlay').style.display       = 'none';
   document.getElementById('update-actions').style.display        = 'flex';
   document.getElementById('update-progress-wrap').style.display  = 'none';
