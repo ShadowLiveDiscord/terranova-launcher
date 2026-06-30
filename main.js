@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const AuthManager   = require('./src/auth/AuthManager');
 const UpdateManager = require('./src/update/UpdateManager');
@@ -107,6 +107,22 @@ ipcMain.on('app-update:install', () => AppUpdater.quitAndInstall());
 
 // ── Lancement du jeu ─────────────────────────────────────────────────────────
 ipcMain.on('launch-game', (event, opts) => {
-  // Ici : appel à minecraft-launcher-core ou node-minecraft-launcher
   console.log('Lancement demandé :', opts);
+});
+
+// ── Shell : ouvrir un dossier / lien externe ──────────────────────────────────
+ipcMain.handle('shell:openPath', async (_, p) => {
+  const err = await shell.openPath(p);
+  return { success: err === '' };
+});
+
+ipcMain.handle('shell:openExternal', async (_, url) => {
+  await shell.openExternal(url);
+  return { success: true };
+});
+
+// ── Dialog : choisir un dossier ───────────────────────────────────────────────
+ipcMain.handle('dialog:openFolder', async () => {
+  const r = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] });
+  return { canceled: r.canceled, path: r.filePaths[0] || '' };
 });

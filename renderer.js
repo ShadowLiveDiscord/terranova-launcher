@@ -4,16 +4,19 @@ const path = typeof require !== 'undefined' ? require('path') : null;
 
 // ipcRenderer.invoke disponible uniquement dans Electron
 const ipc = ipcRenderer ? {
-  autoLogin:     () => ipcRenderer.invoke('auth:autoLogin'),
-  login:         () => ipcRenderer.invoke('auth:login'),
-  logout:        () => ipcRenderer.invoke('auth:logout'),
-  checkUpdate:   (url)              => ipcRenderer.invoke('update:check', { url }),
-  startUpdate:   (instanceDir, files) => ipcRenderer.invoke('update:start', { instanceDir, files }),
-  onProgress:    (cb)              => ipcRenderer.on('update:progress', (_, data) => cb(data)),
+  autoLogin:        () => ipcRenderer.invoke('auth:autoLogin'),
+  login:            () => ipcRenderer.invoke('auth:login'),
+  logout:           () => ipcRenderer.invoke('auth:logout'),
+  checkUpdate:      (url) => ipcRenderer.invoke('update:check', { url }),
+  startUpdate:      (instanceDir, files) => ipcRenderer.invoke('update:start', { instanceDir, files }),
+  onProgress:       (cb) => ipcRenderer.on('update:progress', (_, data) => cb(data)),
   checkAppUpdate:   () => ipcRenderer.invoke('app-update:check'),
   downloadAppUpdate: () => ipcRenderer.invoke('app-update:download'),
   installAppUpdate:  () => ipcRenderer.send('app-update:install'),
   onAppUpdateStatus: (cb) => ipcRenderer.on('app-update:status', (_, data) => cb(data)),
+  openPath:         (p) => ipcRenderer.invoke('shell:openPath', p),
+  openExternal:     (url) => ipcRenderer.invoke('shell:openExternal', url),
+  openFolderDialog: () => ipcRenderer.invoke('dialog:openFolder'),
 } : null;
 
 // ── Titlebar ──
@@ -249,6 +252,125 @@ function updateRam(val) {
   const gb = (val / 1024).toFixed(1);
   document.getElementById('ram-val').textContent = gb + ' GB';
   document.getElementById('status-ram').textContent = val;
+  localStorage.setItem('s_ram', val);
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 2500);
+}
+
+// ── Ouvrir dossier ──
+function openFolder() {
+  const p = instanceData?.instance?.path || 'C:\\TerraNova\\instances\\mon-instance';
+  if (ipc) ipc.openPath(p);
+  else showToast('📁 ' + p);
+}
+
+function openSavesFolder() {
+  const base = instanceData?.instance?.path || 'C:\\TerraNova\\instances\\mon-instance';
+  const p = base.replace(/\\/g, '\\') + '\\saves';
+  if (ipc) ipc.openPath(p);
+  else showToast('📁 ' + p);
+}
+
+// ── Lien externe ──
+function openExternalLink(url) {
+  if (ipc) ipc.openExternal(url);
+  else window.open(url, '_blank');
+}
+
+// ── Parcourir (dialog) ──
+async function browseFolder() {
+  if (ipc) {
+    const r = await ipc.openFolderDialog();
+    if (!r.canceled && r.path) {
+      const el = document.getElementById('instances-path-input');
+      if (el) el.value = r.path;
+      localStorage.setItem('s_instances_path', r.path);
+      showToast('Dossier sélectionné : ' + r.path);
+    }
+  } else {
+    showToast('Sélection de dossier disponible dans l\'app Electron');
+  }
+}
+
+// ── Ajouter mod ──
+function addMod() {
+  showToast('Glisser-déposer un .jar disponible dans l\'app Electron');
+}
+
+// ── Menu ••• ──
+function toggleMoreMenu() {
+  const m = document.getElementById('more-menu');
+  if (!m) return;
+  m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', (e) => {
+  const m = document.getElementById('more-menu');
+  if (m && !m.contains(e.target) && !e.target.closest('.more-btn')) {
+    m.style.display = 'none';
+  }
+});
+
+// ── Persistance paramètres ──
+function saveSettings() {
+  const jvm = document.getElementById('jvm-input');
+  if (jvm) localStorage.setItem('s_jvm', jvm.value);
+  const fullscreen = document.getElementById('fullscreen-check');
+  if (fullscreen) localStorage.setItem('s_fullscreen', fullscreen.checked ? '1' : '0');
+  const closeOnLaunch = document.getElementById('close-on-launch-check');
+  if (closeOnLaunch) localStorage.setItem('s_close_on_launch', closeOnLaunch.checked ? '1' : '0');
+  const autoUpdates = document.getElementById('auto-updates-check');
+  if (autoUpdates) localStorage.setItem('s_auto_updates', autoUpdates.checked ? '1' : '0');
+  showToast('Paramètres sauvegardés');
+}
+
+function saveNotes() {
+  const el = document.getElementById('notes-area');
+  if (el) localStorage.setItem('s_notes', el.value);
+}
+
+function loadSettings() {
+  const ram = localStorage.getItem('s_ram');
+  if (ram) {
+    const slider = document.getElementById('ram-slider');
+    if (slider) { slider.value = ram; updateRam(ram); }
+  }
+  const jvm = localStorage.getItem('s_jvm');
+  if (jvm) {
+    const el = document.getElementById('jvm-input');
+    if (el) el.value = jvm;
+  }
+  const fullscreen = localStorage.getItem('s_fullscreen');
+  if (fullscreen !== null) {
+    const el = document.getElementById('fullscreen-check');
+    if (el) el.checked = fullscreen === '1';
+  }
+  const closeOnLaunch = localStorage.getItem('s_close_on_launch');
+  if (closeOnLaunch !== null) {
+    const el = document.getElementById('close-on-launch-check');
+    if (el) el.checked = closeOnLaunch === '1';
+  }
+  const autoUpdates = localStorage.getItem('s_auto_updates');
+  if (autoUpdates !== null) {
+    const el = document.getElementById('auto-updates-check');
+    if (el) el.checked = autoUpdates === '1';
+  }
+  const notes = localStorage.getItem('s_notes');
+  if (notes !== null) {
+    const el = document.getElementById('notes-area');
+    if (el) el.value = notes;
+  }
+  const instancesPath = localStorage.getItem('s_instances_path');
+  if (instancesPath) {
+    const el = document.getElementById('instances-path-input');
+    if (el) el.value = instancesPath;
+  }
 }
 
 // ── Lancement ──
@@ -289,7 +411,6 @@ function cancelLaunch() {
   document.getElementById('launch-overlay').classList.remove('active');
 }
 
-function openFolder() {}
 function quitApp() { ipcRenderer?.send('close-window'); }
 function checkUpdate() { checkAdminUpdate(); }
 
@@ -537,6 +658,7 @@ function transitionToLauncher() {
 // ── Init ──
 window.addEventListener('DOMContentLoaded', async () => {
   loadInstance();
+  loadSettings();
 
   if (ipc) {
     ipc.onAppUpdateStatus(handleAppUpdateStatus);
