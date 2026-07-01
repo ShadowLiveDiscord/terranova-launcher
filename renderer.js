@@ -103,14 +103,16 @@ function applyInstance() {
   // Changelog
   const admin = instanceData.admin;
   if (admin) {
-    const badge = document.getElementById('changelog-version');
-    const text  = document.getElementById('changelog-text');
-    const local = document.getElementById('changelog-local-ver');
+    const badge  = document.getElementById('changelog-version');
+    const text   = document.getElementById('changelog-text');
+    const local  = document.getElementById('changelog-local-ver');
     const remote = document.getElementById('changelog-remote-ver');
-    if (badge)  badge.textContent  = `v${admin.instance_version}`;
+    const ver    = admin.instance_version || '?';
+    const lver   = admin.local_version    || localInstanceVersion || '?';
+    if (badge)  badge.textContent  = `v${ver}`;
     if (text)   text.textContent   = admin.changelog || 'Aucun changelog disponible.';
-    if (local)  local.textContent  = `v${admin.local_version || '?'}`;
-    if (remote) remote.textContent = `v${admin.instance_version || '?'}`;
+    if (local)  local.textContent  = `v${lver}`;
+    if (remote) remote.textContent = `v${ver}`;
   }
 }
 
@@ -1037,7 +1039,89 @@ async function populateJavaSelect() {
   }
 }
 
+// ── Panel Admin ──────────────────────────────────────────────────────────────
+function adminLoad() {
+  if (!instanceData?.admin) return;
+  const a = instanceData.admin;
+  const el = (id) => document.getElementById(id);
+  el('admin-instance-version').value = a.instance_version || '1';
+  el('admin-local-version').value    = a.local_version    || '1';
+  el('admin-force-update').checked   = !!a.force_update;
+  el('admin-changelog').value        = a.changelog        || '';
+  el('admin-files').value = (a.files || []).map(f =>
+    `${f.path} | ${f.url} | ${f.sha256} | ${f.size}`
+  ).join('\n');
+}
+
+function adminBuildData() {
+  const el = (id) => document.getElementById(id);
+  const filesRaw = el('admin-files').value.trim().split('\n').filter(Boolean);
+  const files = filesRaw.map(line => {
+    const [p, url, sha256, size] = line.split('|').map(s => s.trim());
+    return { path: p, url, sha256: sha256 || 'placeholder', size: parseInt(size) || 0 };
+  });
+  return {
+    instance_version: el('admin-instance-version').value.trim(),
+    local_version:    instanceData.admin.local_version || '1',
+    changelog:        el('admin-changelog').value.trim(),
+    force_update:     el('admin-force-update').checked,
+    manifest_url:     instanceData.admin.manifest_url,
+    files,
+  };
+}
+
+function adminSave() {
+  if (!fs || !path) { showToast('Disponible uniquement dans l\'app Electron'); return; }
+  const newAdmin = adminBuildData();
+  instanceData.admin = newAdmin;
+  const jsonPath = path.join(__dirname, 'instance.json');
+  try {
+    fs.writeFileSync(jsonPath, JSON.stringify(instanceData, null, 2), 'utf8');
+    // Rafraîchit le badge changelog
+    const badge  = document.getElementById('changelog-version');
+    const text   = document.getElementById('changelog-text');
+    const remote = document.getElementById('changelog-remote-ver');
+    const local2 = document.getElementById('changelog-local-ver');
+    if (badge)  badge.textContent  = `v${newAdmin.instance_version}`;
+    if (text)   text.textContent   = newAdmin.changelog || '';
+    if (remote) remote.textContent = `v${newAdmin.instance_version}`;
+    if (local2) local2.textContent = `v${newAdmin.local_version}`;
+    showToast('✅ instance.json sauvegardé — pousse sur GitHub pour déployer');
+  } catch (e) {
+    showToast('Erreur : ' + e.message);
+  }
+}
+
+function adminPreview() {
+  const pre = document.getElementById('admin-json-preview');
+  if (pre.style.display === 'none') {
+    pre.textContent = JSON.stringify({ admin: adminBuildData() }, null, 2);
+    pre.style.display = 'block';
+  } else {
+    pre.style.display = 'none';
+  }
+}
+
+function adminSimulateUpdate() {
+  const a = adminBuildData();
+  instanceData.admin = a;
+  const badge  = document.getElementById('changelog-version');
+  const text   = document.getElementById('changelog-text');
+  if (badge) badge.textContent = `v${a.instance_version}`;
+  if (text)  text.textContent  = a.changelog;
+  showUpdateBanner(a.changelog, a.force_update);
+  showTab('instance');
+  showToast('Simulation : bannière de MAJ affichée');
+}
+
 // ── Init ──
+window.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+    adminLoad();
+    showTab('admin');
+  }
+});
+
 window.addEventListener('DOMContentLoaded', async () => {
   loadInstance();
   loadSettings();
