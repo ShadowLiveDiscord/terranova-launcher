@@ -109,9 +109,6 @@
         <button class="nav-item" data-tab="saves">
           <img src="assets/Sauvegardes.png" class="nav-icon-img" alt="Sauvegardes"> SAUVEGARDES
         </button>
-        <button class="nav-item" data-tab="community">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> JOUEURS
-        </button>
         <button class="nav-item" data-tab="account">
           <img src="assets/Comptes.png" class="nav-icon-img" alt="Compte"> COMPTE
         </button>
@@ -235,6 +232,13 @@
               </div>
 
             </div>
+
+            <!-- Historique des sessions -->
+            <div class="sessions-panel">
+              <h3 class="panel-title">HISTORIQUE DES SESSIONS</h3>
+              <div id="sessions-list"><div class="sessions-empty">Aucune session enregistrée.</div></div>
+            </div>
+
           </div>
 
           <!-- PARAMÈTRES instance -->
@@ -412,16 +416,6 @@
         </div>
       </div>
 
-      <!-- TAB: JOUEURS -->
-      <div class="tab" id="tab-community">
-        <div class="tab-topbar">
-          <h2>JOUEURS</h2>
-          <button class="mc-btn-inline green" onclick="loadCommunity()" style="margin-left:auto">🔄 Actualiser</button>
-        </div>
-        <div id="community-content" style="padding:20px 24px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;">
-          <div class="placeholder-tab"><span>👥</span><p>Cliquez sur Actualiser pour charger les données.</p></div>
-        </div>
-      </div>
 
       <!-- TAB: COMPTE -->
       <div class="tab" id="tab-account">
@@ -598,11 +592,15 @@
   <div class="crash-modal" id="crash-modal" style="display:none">
     <div class="crash-box">
       <div class="crash-header-row">
-        <div class="crash-icon">💥</div>
+        <div class="crash-icon" id="crash-icon">💥</div>
         <div>
-          <h2 class="crash-title">Minecraft a planté</h2>
+          <h2 class="crash-title" id="crash-title">Minecraft a planté</h2>
           <p class="crash-sub">Code <strong id="crash-code">—</strong> · <span id="crash-filename-label" style="color:var(--muted);font-size:11px"></span></p>
         </div>
+      </div>
+      <div class="crash-diagnosis" id="crash-diagnosis" style="display:none">
+        <div class="crash-diagnosis-cause" id="crash-diagnosis-cause"></div>
+        <ul class="crash-advice" id="crash-advice"></ul>
       </div>
       <pre class="crash-log" id="crash-log">Recherche du rapport...</pre>
       <div class="crash-actions">

@@ -690,6 +690,7 @@ async function launchGame() {
       overlay.classList.remove('active');
       if (cancelBtn) cancelBtn.textContent = 'Annuler';
       ipc.discordStop?.();
+      saveSession(code);
       if (code !== 0 && code !== null) showCrashModal(code);
     });
 
@@ -1149,20 +1150,75 @@ async function loadRealMods() {
 }
 
 // ── Crash reporter ────────────────────────────────────────────────────────────
+function analyzeCrash(content, exitCode) {
+  const c = content || '';
+  if (c.includes('OutOfMemoryError') || c.includes('GC overhead limit')) {
+    return {
+      icon: '🧠', title: 'Manque de RAM', color: '#e67e22',
+      cause: 'Minecraft a manqué de mémoire pendant la session.',
+      advice: ['Augmente la RAM allouée dans Paramètres (recommandé : 6 GB+)', 'Ferme les autres applications avant de lancer', 'Désactive les shaders si actifs'],
+    };
+  }
+  if (c.includes('InjectionError') || c.includes('MixinTransformerError') || c.includes('mixin.injection')) {
+    const modMatch = c.match(/from mod (\w+)/);
+    const modName  = modMatch ? modMatch[1] : 'un mod';
+    return {
+      icon: '🧩', title: 'Conflit de mod', color: '#9b59b6',
+      cause: `Un mixin de "${modName}" a échoué — incompatibilité entre mods.`,
+      advice: [`Désactive "${modName}" dans l'onglet Mods et relance`, 'Vérifie que tous tes mods sont compatibles NeoForge 1.21.1', 'Si tu utilises Sinytra Connector, le mod Fabric est peut-être incompatible'],
+    };
+  }
+  if (c.includes('EXCEPTION_ACCESS_VIOLATION') || c.includes('A fatal error has been detected') || exitCode === -1073741819) {
+    return {
+      icon: '⚡', title: 'Crash JVM / Pilote', color: '#e74c3c',
+      cause: 'La JVM a planté — souvent lié aux pilotes graphiques ou à Java.',
+      advice: ['Mets à jour tes pilotes graphiques (NVIDIA/AMD)', 'Réinstalle Java 21 depuis adoptium.net', 'Désactive les overclocks si tu en as', 'Essaie de désactiver les shaders'],
+    };
+  }
+  if (c.includes('FileNotFoundException') || c.includes('NoSuchFileException')) {
+    return {
+      icon: '📁', title: 'Fichier manquant', color: '#3498db',
+      cause: 'Un fichier requis par l\'instance est introuvable.',
+      advice: ['Utilise "Forcer la MAJ des mods" dans le menu JOUER', 'Vérifie que le dossier de l\'instance est accessible', 'Réinstalle l\'instance si le problème persiste'],
+    };
+  }
+  if (exitCode === 0) {
+    return {
+      icon: '✅', title: 'Fermeture normale', color: '#27ae60',
+      cause: 'Le jeu s\'est fermé normalement (code 0).',
+      advice: [],
+    };
+  }
+  return {
+    icon: '💥', title: 'Crash inattendu', color: '#e74c3c',
+    cause: `Le jeu s'est arrêté avec le code ${exitCode}.`,
+    advice: ['Consulte le rapport complet pour plus de détails', 'Vérifie les logs Minecraft pour identifier la cause', 'Essaie de désactiver les mods ajoutés récemment'],
+  };
+}
+
 async function showCrashModal(code) {
   const modal = document.getElementById('crash-modal');
   if (!modal) return;
-  const codeEl    = document.getElementById('crash-code');
-  const logEl     = document.getElementById('crash-log');
-  const labelEl   = document.getElementById('crash-filename-label');
-  const openBtn   = document.getElementById('crash-open-btn');
+  const codeEl      = document.getElementById('crash-code');
+  const logEl       = document.getElementById('crash-log');
+  const labelEl     = document.getElementById('crash-filename-label');
+  const openBtn     = document.getElementById('crash-open-btn');
+  const titleEl     = document.getElementById('crash-title');
+  const iconEl      = document.getElementById('crash-icon');
+  const diagEl      = document.getElementById('crash-diagnosis');
+  const causeEl     = document.getElementById('crash-diagnosis-cause');
+  const adviceEl    = document.getElementById('crash-advice');
   if (codeEl) codeEl.textContent = code;
   if (logEl)  logEl.textContent  = 'Recherche du rapport...';
   if (openBtn) openBtn.style.display = 'none';
+  if (diagEl)  diagEl.style.display  = 'none';
   modal.style.display = 'flex';
+
+  let crashContent = '';
   if (ipc?.getCrashReport && realInstanceDir) {
     const res = await ipc.getCrashReport(realInstanceDir);
     if (res.success) {
+      crashContent = res.last10;
       if (labelEl) labelEl.textContent = res.filename;
       if (logEl)   logEl.textContent   = res.last10;
       if (openBtn) { window._crashFullPath = res.fullPath; openBtn.style.display = ''; }
@@ -1171,6 +1227,16 @@ async function showCrashModal(code) {
     }
   } else {
     if (logEl) logEl.textContent = 'Rapport non disponible dans ce mode.';
+  }
+
+  const diag = analyzeCrash(crashContent, code);
+  if (iconEl)  iconEl.textContent  = diag.icon;
+  if (titleEl) titleEl.textContent = diag.title;
+  if (diagEl)  { diagEl.style.display = 'block'; diagEl.style.borderLeftColor = diag.color; }
+  if (causeEl) causeEl.textContent = diag.cause;
+  if (adviceEl) {
+    adviceEl.innerHTML = diag.advice.map(a => `<li>${a}</li>`).join('');
+    adviceEl.style.display = diag.advice.length ? '' : 'none';
   }
 }
 
@@ -1364,6 +1430,51 @@ function adminSimulateUpdate() {
   showToast('Simulation : bannière de MAJ affichée');
 }
 
+// ── Historique des sessions ───────────────────────────────────────────────────
+const SESSIONS_KEY = 'terranova_sessions';
+const SESSIONS_MAX = 10;
+
+function saveSession(exitCode) {
+  if (!gameStartTime) return;
+  const duration = Math.floor((Date.now() - gameStartTime) / 1000);
+  gameStartTime = null;
+  const sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]');
+  sessions.unshift({
+    date:     new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    duration,
+    exitCode,
+    crashed:  exitCode !== 0 && exitCode !== null,
+  });
+  if (sessions.length > SESSIONS_MAX) sessions.length = SESSIONS_MAX;
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+  renderSessions();
+}
+
+function formatDuration(secs) {
+  if (secs < 60) return `${secs}s`;
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function renderSessions() {
+  const el = document.getElementById('sessions-list');
+  if (!el) return;
+  const sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]');
+  if (!sessions.length) {
+    el.innerHTML = '<div class="sessions-empty">Aucune session enregistrée.</div>';
+    return;
+  }
+  el.innerHTML = sessions.map(s => `
+    <div class="session-row ${s.crashed ? 'crashed' : ''}">
+      <span class="session-icon">${s.crashed ? '💥' : '✅'}</span>
+      <span class="session-date">${s.date}</span>
+      <span class="session-duration">${formatDuration(s.duration)}</span>
+      ${s.crashed ? `<span class="session-badge red">Crash ${s.exitCode}</span>` : '<span class="session-badge green">OK</span>'}
+    </div>
+  `).join('');
+}
+
 // ── Init ──
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === 'A') {
@@ -1375,6 +1486,7 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('DOMContentLoaded', async () => {
   loadInstance();
   loadSettings();
+  renderSessions();
   startRamPolling();
   startUpdatePolling();
   startServerPolling();
@@ -1414,12 +1526,9 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Electron : tentative d'auto-login avec session sauvegardée
-    const loading     = document.getElementById('login-loading');
-    const loadingText = document.getElementById('login-loading-text');
-    loading.classList.add('visible');
-    loadingText.textContent = 'Vérification de la session...';
-
+    // Auto-login silencieux : on tente la session en arrière-plan sans afficher le spinner.
+    // Si ça réussit → le launcher s'ouvre directement sans jamais montrer l'écran de login.
+    // Si ça échoue → on affiche l'écran de login normalement.
     const result = await ipc.autoLogin();
 
     if (result.success && result.session) {
@@ -1429,11 +1538,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         uuid: result.session.profile.id,
         skin: result.session.profile.skin,
       }, result.session);
-      transitionToLauncher();
-    } else {
-      // Pas de session → afficher le login normalement
-      loading.classList.remove('visible');
+      // Masque l'écran de login immédiatement sans animation
+      const screen = document.getElementById('login-screen');
+      if (screen) screen.classList.add('hidden');
     }
+    // Sinon : l'écran de login reste visible (état par défaut)
   }
   // En mode preview navigateur : le login screen reste visible normalement
 });
