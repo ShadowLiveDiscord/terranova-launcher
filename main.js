@@ -29,6 +29,7 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
       sandbox: false,
+      webSecurity: false, // requis pour charger les skins Mojang CDN depuis file://
     },
     show: false,
   });
@@ -129,6 +130,11 @@ ipcMain.on('game:kill', () => {
 // ── Discord Rich Presence ─────────────────────────────────────────────────────
 ipcMain.handle('discord:play', (_, opts) => DiscordManager.setPlaying(opts));
 ipcMain.handle('discord:stop', ()       => DiscordManager.clearActivity());
+
+// ── Chemin instance (AppData, toujours accessible sans droits admin) ──────────
+ipcMain.handle('app:getInstanceDir', () =>
+  path.join(app.getPath('userData'), 'instances', 'terranova')
+);
 
 // ── Détection Java ────────────────────────────────────────────────────────────
 ipcMain.handle('java:detect', () => LaunchManager.detectJava());

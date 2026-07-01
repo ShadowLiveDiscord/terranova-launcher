@@ -17,6 +17,7 @@ const ipc = ipcRenderer ? {
   openPath:          (p) => ipcRenderer.invoke('shell:openPath', p),
   openExternal:      (url) => ipcRenderer.invoke('shell:openExternal', url),
   openFolderDialog:  () => ipcRenderer.invoke('dialog:openFolder'),
+  getInstanceDir:    () => ipcRenderer.invoke('app:getInstanceDir'),
   // Jeu
   launch:            (opts) => ipcRenderer.invoke('game:launch', opts),
   killGame:          () => ipcRenderer.send('game:kill'),
@@ -39,6 +40,8 @@ document.getElementById('btn-close')?.addEventListener('click',    () => ipcRend
 // ── Chargement de l'instance ──
 let instanceData = null;
 let localInstanceVersion = localStorage.getItem('localInstanceVersion') || '1';
+// Chemin réel résolu via main process (AppData, toujours accessible sans admin)
+let realInstanceDir = null;
 
 function loadInstance() {
   if (fs) {
@@ -290,14 +293,14 @@ function showToast(msg) {
 
 // ── Ouvrir dossier ──
 function openFolder() {
-  const p = instanceData?.instance?.path || 'C:\\TerraNova\\instances\\terranova';
+  const p = realInstanceDir || instanceData?.instance?.path || 'C:\\TerraNova\\instances\\terranova';
   if (ipc) ipc.openPath(p);
   else showToast('📁 ' + p);
 }
 
 function openSavesFolder() {
-  const base = instanceData?.instance?.path || 'C:\\TerraNova\\instances\\terranova';
-  const p = base.replace(/\\/g, '\\') + '\\saves';
+  const base = realInstanceDir || instanceData?.instance?.path || 'C:\\TerraNova\\instances\\terranova';
+  const p = base + '\\saves';
   if (ipc) ipc.openPath(p);
   else showToast('📁 ' + p);
 }
@@ -420,7 +423,8 @@ async function launchGame() {
     const ramMb     = parseInt(localStorage.getItem('s_ram'))     || instanceData?.instance?.ram_mb || 4096;
     const jvmArgs   = localStorage.getItem('s_jvm')               || '';
     const javaPath  = localStorage.getItem('s_java_path')         || 'java';
-    const instanceDir = instanceData?.instance?.path || '';
+    // Utilise le chemin AppData résolu par le main process (pas C:\TerraNova qui nécessite admin)
+    const instanceDir = realInstanceDir || instanceData?.instance?.path || '';
 
     if (!instanceDir) {
       stat.textContent = 'Erreur : chemin de l\'instance non configuré';
@@ -540,6 +544,7 @@ function checkUpdate() { checkAdminUpdate(); }
 
 // ── Mise à jour automatique du launcher (electron-updater) ───────────────────
 let appUpdateState = 'idle'; // idle | available | downloading | downloaded
+let manualUpdateCheck = false;
 
 function showAppUpdateBanner() {
   document.getElementById('app-update-banner').style.display = 'flex';
@@ -590,12 +595,24 @@ function handleAppUpdateStatus(data) {
       showAppUpdateBanner();
       break;
 
-    case 'error':
+    case 'not-available':
       appUpdateState = 'idle';
-      // Pas de bannière : l'erreur est silencieuse (pas de release publiée = normal)
+      // Feedback uniquement si l'utilisateur a demandé manuellement
+      if (manualUpdateCheck) {
+        showToast('Le launcher est à jour (v' + (data.version || document.title) + ')');
+        manualUpdateCheck = false;
+      }
       break;
 
-    // 'checking' / 'not-available' : pas de bannière, rien à faire
+    case 'error':
+      appUpdateState = 'idle';
+      if (manualUpdateCheck) {
+        showToast('Impossible de vérifier les mises à jour : ' + (data.message || 'erreur réseau'));
+        manualUpdateCheck = false;
+      }
+      break;
+
+    // 'checking' : rien à faire
   }
 }
 
@@ -606,6 +623,13 @@ function appUpdateAction() {
   } else if (appUpdateState === 'downloaded') {
     ipc.installAppUpdate();
   }
+}
+
+function checkLauncherUpdate() {
+  if (!ipc) { showToast('Vérification disponible uniquement en app'); return; }
+  manualUpdateCheck = true;
+  ipc.checkAppUpdate();
+  showToast('Vérification des mises à jour...');
 }
 
 // ── Simuler une MAJ admin ──
@@ -848,6 +872,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   startRamPolling();
 
   if (ipc) {
+    // Résoudre le chemin AppData réel dès le démarrage
+    ipc.getInstanceDir().then(dir => {
+      realInstanceDir = dir;
+      // Afficher le vrai chemin dans l'interface info
+      const el = document.getElementById('info-path');
+      if (el) el.textContent = dir;
+    }).catch(() => {});
+
     ipc.onAppUpdateStatus(handleAppUpdateStatus);
 
     // Electron : tentative d'auto-login avec session sauvegardée
