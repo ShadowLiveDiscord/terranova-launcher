@@ -647,13 +647,28 @@ body.has-update .app-layout { top: 64px; }
 /* ── CRASH MODAL ── */
 .crash-modal { position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 2500; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
 .crash-modal[style*="flex"] { display: flex !important; }
-.crash-box { text-align: center; width: 440px; background: var(--bg2); border: 1px solid rgba(239,68,68,.35); border-radius: 12px; padding: 36px 32px; }
-.crash-icon { font-size: 40px; margin-bottom: 14px; }
-.crash-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: 2px; color: #ef4444; margin: 0 0 8px; }
-.crash-sub { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.crash-box { width: 560px; background: var(--bg2); border: 1px solid rgba(239,68,68,.35); border-radius: 12px; padding: 28px 28px 24px; display: flex; flex-direction: column; gap: 16px; }
+.crash-header-row { display: flex; align-items: center; gap: 14px; }
+.crash-icon { font-size: 36px; flex-shrink: 0; }
+.crash-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: 2px; color: #ef4444; margin: 0 0 4px; }
+.crash-sub { font-size: 12px; color: var(--muted); margin: 0; }
 .crash-sub strong { color: #ef4444; }
-.crash-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
-.crash-actions { display: flex; gap: 10px; justify-content: center; }
+.crash-log { background: var(--bg); border: 1px solid var(--border2); border-radius: 4px; padding: 10px 12px; font-size: 10px; font-family: monospace; color: #f87171; line-height: 1.6; white-space: pre-wrap; word-break: break-all; max-height: 180px; overflow-y: auto; }
+.crash-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ── PANEL JOUEURS (MySQL) ── */
+.db-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.db-stat-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 6px; padding: 14px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.db-stat-count { font-size: 28px; font-weight: 700; font-family: 'Rajdhani', sans-serif; color: var(--green-bright); }
+.db-stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+.db-table-section { display: flex; flex-direction: column; gap: 10px; }
+.db-table-wrap { overflow-x: auto; border: 1px solid var(--border2); border-radius: 6px; }
+.db-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.db-table thead th { background: var(--bg2); color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border2); white-space: nowrap; }
+.db-table tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+.db-table tbody tr:last-child { border-bottom: none; }
+.db-table tbody tr:hover { background: var(--bg2); }
+.db-table tbody td { padding: 8px 12px; color: var(--text); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* SAVES */
 .save-item { display:flex; align-items:center; gap:14px; padding:12px 14px; background:#111; border:1px solid #1e1e1e; border-radius:4px; margin-bottom:8px; cursor:pointer; transition:border-color .15s; }

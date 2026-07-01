@@ -37,8 +37,11 @@ const ipc = ipcRenderer ? {
   discordPlay:       (opts) => ipcRenderer.invoke('discord:play', opts),
   discordStop:       ()     => ipcRenderer.invoke('discord:stop'),
   // Serveur
-  pingServer:        (opts) => ipcRenderer.invoke('server:ping', opts),
-  dbQuery:           (opts) => ipcRenderer.invoke('server:db',   opts),
+  pingServer:        (opts) => ipcRenderer.invoke('server:ping',    opts),
+  dbQuery:           (opts) => ipcRenderer.invoke('server:db',      opts),
+  dbStats:           ()     => ipcRenderer.invoke('server:dbStats'),
+  // Crash
+  getCrashReport:    (dir)  => ipcRenderer.invoke('crash:getReport', dir),
 } : null;
 
 // ── Titlebar ──
@@ -301,9 +304,10 @@ function finishUpdate() {
 
 // ── Navigation principale ──
 function showTab(name) {
-  if (name === 'settings') populateJavaSelect();
-  if (name === 'saves')   loadSaves();
-  if (name === 'options') loadOptions();
+  if (name === 'settings')   populateJavaSelect();
+  if (name === 'saves')      loadSaves();
+  if (name === 'options')    loadOptions();
+  if (name === 'community')  loadCommunity();
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   const tab = document.getElementById('tab-' + name);
@@ -1108,13 +1112,30 @@ async function loadRealMods() {
   document.getElementById('mods-count').textContent         = mods.length;
 }
 
-// ── Crash detection ───────────────────────────────────────────────────────────
-function showCrashModal(code) {
+// ── Crash reporter ────────────────────────────────────────────────────────────
+async function showCrashModal(code) {
   const modal = document.getElementById('crash-modal');
   if (!modal) return;
-  const codeEl = document.getElementById('crash-code');
+  const codeEl    = document.getElementById('crash-code');
+  const logEl     = document.getElementById('crash-log');
+  const labelEl   = document.getElementById('crash-filename-label');
+  const openBtn   = document.getElementById('crash-open-btn');
   if (codeEl) codeEl.textContent = code;
+  if (logEl)  logEl.textContent  = 'Recherche du rapport...';
+  if (openBtn) openBtn.style.display = 'none';
   modal.style.display = 'flex';
+  if (ipc?.getCrashReport && realInstanceDir) {
+    const res = await ipc.getCrashReport(realInstanceDir);
+    if (res.success) {
+      if (labelEl) labelEl.textContent = res.filename;
+      if (logEl)   logEl.textContent   = res.last10;
+      if (openBtn) { window._crashFullPath = res.fullPath; openBtn.style.display = ''; }
+    } else {
+      if (logEl) logEl.textContent = 'Aucun rapport de crash trouvé.\nConsultez les logs pour diagnostiquer.';
+    }
+  } else {
+    if (logEl) logEl.textContent = 'Rapport non disponible dans ce mode.';
+  }
 }
 
 function closeCrashModal() {
@@ -1122,9 +1143,52 @@ function closeCrashModal() {
   if (modal) modal.style.display = 'none';
 }
 
+function openCrashReport() {
+  if (window._crashFullPath && ipc) ipc.openPath(window._crashFullPath);
+}
+
 function openMinecraftLogs() {
   if (!ipc || !realInstanceDir) { showToast('Chemin instance non résolu'); return; }
   ipc.openPath(path.join(realInstanceDir, 'logs', 'latest.log'));
+}
+
+// ── Panel Joueurs (MySQL) ─────────────────────────────────────────────────────
+async function loadCommunity() {
+  const el = document.getElementById('community-content');
+  if (!el) return;
+  el.innerHTML = '<div class="placeholder-tab"><span>⏳</span><p>Connexion à la base de données...</p></div>';
+  if (!ipc?.dbStats) {
+    el.innerHTML = '<div class="placeholder-tab"><span>🔌</span><p>Disponible uniquement dans l\'app.</p></div>';
+    return;
+  }
+  const res = await ipc.dbStats();
+  if (!res.success) {
+    el.innerHTML = `<div class="placeholder-tab"><span>❌</span><p>Connexion impossible.<br><small style="color:var(--muted)">${res.error || res.reason || ''}</small></p></div>`;
+    return;
+  }
+  const cards = res.tableNames.map(t => `
+    <div class="db-stat-card">
+      <span class="db-stat-count">${res.counts[t]}</span>
+      <span class="db-stat-label">${t}</span>
+    </div>
+  `).join('');
+  let html = `<div class="db-stats-grid">${cards}</div>`;
+  if (res.playerTable && res.recentRows.length) {
+    const headers = res.columns.map(c => `<th>${c}</th>`).join('');
+    const rows    = res.recentRows.map(row =>
+      `<tr>${res.columns.map(c => `<td>${row[c] ?? '—'}</td>`).join('')}</tr>`
+    ).join('');
+    html += `
+      <div class="db-table-section">
+        <h3 class="panel-title">DERNIERS JOUEURS · <span style="color:var(--green-bright)">${res.playerTable}</span></h3>
+        <div class="db-table-wrap">
+          <table class="db-table"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>
+        </div>
+      </div>`;
+  } else if (!res.tableNames.length) {
+    html += '<div class="placeholder-tab"><span>📭</span><p>Aucune table trouvée dans la base de données.</p></div>';
+  }
+  el.innerHTML = html;
 }
 
 // ── Statut du serveur Minecraft ───────────────────────────────────────────────

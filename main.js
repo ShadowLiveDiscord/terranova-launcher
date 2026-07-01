@@ -243,6 +243,62 @@ ipcMain.handle('mods:toggle', async (_, { instanceDir, filename, enable }) => {
   }
 });
 
+// ── Crash reporter ────────────────────────────────────────────────────────────
+ipcMain.handle('crash:getReport', async (_, instanceDir) => {
+  const crashDir = path.join(instanceDir, 'crash-reports');
+  try {
+    if (!fs.existsSync(crashDir)) return { success: false, reason: 'no_dir' };
+    const files = fs.readdirSync(crashDir)
+      .filter(f => f.endsWith('.txt'))
+      .map(f => ({ name: f, mtime: fs.statSync(path.join(crashDir, f)).mtime }))
+      .sort((a, b) => b.mtime - a.mtime);
+    if (!files.length) return { success: false, reason: 'no_reports' };
+    const latest = files[0];
+    const content = fs.readFileSync(path.join(crashDir, latest.name), 'utf8');
+    const lines   = content.split('\n').filter(l => l.trim());
+    return {
+      success:  true,
+      filename: latest.name,
+      last10:   lines.slice(-10).join('\n'),
+      fullPath: path.join(crashDir, latest.name),
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// ── Stats MySQL ───────────────────────────────────────────────────────────────
+ipcMain.handle('server:dbStats', async () => {
+  if (!DB_CONFIG.host) return { success: false, reason: 'not_configured' };
+  try {
+    const mysql = require('mysql2/promise');
+    const conn  = await mysql.createConnection(DB_CONFIG);
+    const [tables] = await conn.execute('SHOW TABLES');
+    const tableNames = tables.map(t => Object.values(t)[0]);
+    const counts = {};
+    for (const tbl of tableNames) {
+      try {
+        const [[row]] = await conn.execute(`SELECT COUNT(*) AS c FROM \`${tbl}\``);
+        counts[tbl] = row.c;
+      } catch { counts[tbl] = '?'; }
+    }
+    const PLAYER_TABLES = ['users', 'players', 'membres', 'accounts', 'utilisateurs', 'joueurs'];
+    const playerTable = tableNames.find(t => PLAYER_TABLES.includes(t.toLowerCase()));
+    let recentRows = [], columns = [];
+    if (playerTable) {
+      try {
+        const [rows] = await conn.execute(`SELECT * FROM \`${playerTable}\` ORDER BY id DESC LIMIT 10`);
+        recentRows = rows;
+        if (rows.length) columns = Object.keys(rows[0]);
+      } catch {}
+    }
+    await conn.end();
+    return { success: true, tableNames, counts, playerTable, recentRows, columns };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 // ── Statut du serveur Minecraft (SLP ping) ────────────────────────────────────
 ipcMain.handle('server:ping', async (_, { host, port }) => {
   try {
