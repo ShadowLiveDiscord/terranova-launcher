@@ -1,6 +1,6 @@
 {
     "name": "terranova-launcher",
-    "version": "1.3.13",
+    "version": "1.3.14",
     "description": "TerraNova Minecraft Launcher",
     "main": "main.js",
     "scripts": {
@@ -34,6 +34,7 @@
             "src/**/*",
             "assets/**/*",
             "instance.json",
+            "distribution.json",
             ".env"
         ],
         "win": {

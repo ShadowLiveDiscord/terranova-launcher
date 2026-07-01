@@ -1,0 +1,53 @@
+{
+    "version": "1.0.0",
+    "servers": [
+        {
+            "id": "terranova",
+            "name": "TerraNova",
+            "description": "Serveur survie vanilla-like avec mods de confort.",
+            "instanceVersion": "3",
+            "changelog": "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",
+            "minecraftVersion": "1.21.1",
+            "loaderVersion": "21.1.233",
+            "forceUpdate": false,
+            "modules": [
+                {
+                    "id": "terranova:biomes-o-plenty:1.21.1",
+                    "name": "Biomes O' Plenty",
+                    "type": "ForgeMod",
+                    "required": true,
+                    "artifact": {
+                        "path": "mods/biomes-o-plenty-1.21.1.jar",
+                        "url": "https://cdn.terranova.fr/mods/biomes-o-plenty-1.21.1.jar",
+                        "sha256": "placeholder",
+                        "size": 8234567
+                    }
+                },
+                {
+                    "id": "terranova:journeymap:1.21.1",
+                    "name": "JourneyMap",
+                    "type": "ForgeMod",
+                    "required": false,
+                    "artifact": {
+                        "path": "mods/journeymap-1.21.1.jar",
+                        "url": "https://cdn.terranova.fr/mods/journeymap-1.21.1.jar",
+                        "sha256": "placeholder",
+                        "size": 2890000
+                    }
+                },
+                {
+                    "id": "terranova:just-enough-items:1.21.1",
+                    "name": "Just Enough Items",
+                    "type": "ForgeMod",
+                    "required": false,
+                    "artifact": {
+                        "path": "mods/just-enough-items-1.21.1.jar",
+                        "url": "https://cdn.terranova.fr/mods/just-enough-items-1.21.1.jar",
+                        "sha256": "placeholder",
+                        "size": 1540000
+                    }
+                }
+            ]
+        }
+    ]
+}

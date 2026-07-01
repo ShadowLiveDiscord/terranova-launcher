@@ -412,6 +412,13 @@ body.has-update .app-layout { top: 64px; }
 .mod-info { flex: 1; }
 .mod-name { display: block; font-weight: 600; font-size: 13px; }
 .mod-version { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
+.mod-badge { font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 2px 7px; border-radius: 3px; flex-shrink: 0; text-transform: uppercase; }
+.mod-badge.required { background: rgba(74,170,58,.15); color: var(--green-bright); border: 1px solid rgba(74,170,58,.3); }
+.mod-badge.optional { background: rgba(0,212,255,.1); color: var(--cyan); border: 1px solid rgba(0,212,255,.2); }
+.mods-section { display: flex; flex-direction: column; }
+.mods-section-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 18px; background: var(--bg3); border-bottom: 1px solid var(--border); }
+.mods-section-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); font-family: 'Rajdhani', sans-serif; }
+.mods-section-count { font-size: 10px; color: var(--muted); }
 .btn-add { background: var(--bg4); border: 1px solid var(--border2); color: var(--green-bright); padding: 6px 12px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all .18s; }
 .btn-add:hover { background: var(--green-dark); color: #fff; }
 

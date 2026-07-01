@@ -56,6 +56,59 @@ let localInstanceVersion = localStorage.getItem('localInstanceVersion') || '1';
 // Chemin réel résolu via main process (AppData, toujours accessible sans admin)
 let realInstanceDir = null;
 
+// ── Distribution Nebula ───────────────────────────────────────────────────────
+let distributionData    = null;
+let distributionModules = [];
+const OPT_MODS_KEY = 'terranova_optional_mods';
+
+function getOptionalModState(modId) {
+  const saved = JSON.parse(localStorage.getItem(OPT_MODS_KEY) || '{}');
+  return saved[modId] !== false;
+}
+function setOptionalModState(modId, enabled) {
+  const saved = JSON.parse(localStorage.getItem(OPT_MODS_KEY) || '{}');
+  saved[modId] = enabled;
+  localStorage.setItem(OPT_MODS_KEY, JSON.stringify(saved));
+}
+function toggleOptionalMod(modId, enabled) {
+  setOptionalModState(modId, enabled);
+  reRenderModsPanel();
+}
+function updateModCounts(enabled, total) {
+  const modsCountEl = document.getElementById('mods-count');
+  const statusEl    = document.getElementById('status-mods');
+  const enabledEl   = document.getElementById('mods-enabled-count');
+  if (modsCountEl) modsCountEl.textContent = total;
+  if (statusEl)    statusEl.textContent    = `${enabled} / ${total}`;
+  if (enabledEl)   enabledEl.textContent   = `${enabled} / ${total} mods actifs`;
+}
+function getDistributionFiles() {
+  if (!distributionModules.length) return instanceData?.admin?.files || [];
+  const files = [];
+  for (const m of distributionModules) {
+    const isRequired = m.required !== false;
+    const isEnabled  = isRequired || getOptionalModState(m.id);
+    if (!isEnabled || !m.artifact) continue;
+    files.push({
+      path:   m.artifact.path,
+      url:    m.artifact.url,
+      sha256: m.artifact.sha256 || m.artifact.md5 || 'placeholder',
+      size:   m.artifact.size || 0,
+    });
+    for (const sub of m.subModules || []) {
+      if (!sub.artifact) continue;
+      files.push({ path: sub.artifact.path, url: sub.artifact.url, sha256: sub.artifact.sha256 || sub.artifact.md5 || 'placeholder', size: sub.artifact.size || 0 });
+    }
+  }
+  return files;
+}
+function reRenderModsPanel() {
+  const localMods = (instanceData?.instance?.mods || []).filter(m =>
+    !distributionModules.some(dm => dm.artifact?.path === 'mods/' + m.filename)
+  );
+  renderMods(localMods);
+}
+
 function loadInstance() {
   if (fs) {
     try {
@@ -104,12 +157,7 @@ function applyInstance() {
   if (ramSlider) { ramSlider.value = i.ram_mb; updateRam(i.ram_mb); }
 
   // Mods
-  renderMods(i.mods);
-
-  // Statut mods
-  const enabled = i.mods.filter(m => m.enabled).length;
-  document.getElementById('status-mods').textContent = `${enabled} / ${i.mods.length}`;
-  document.getElementById('mods-enabled-count').textContent = `${enabled} / ${i.mods.length} mods actifs`;
+  reRenderModsPanel();
 
   // Changelog
   const admin = instanceData.admin;
@@ -127,26 +175,83 @@ function applyInstance() {
   }
 }
 
-function renderMods(mods) {
+function renderMods(localMods) {
   const icons = ['🌿','⚡','🗺','🏗','🎒','🔮','🚀','🍖','🦁','⚔','⚙','💎'];
-  const empty = '<div class="placeholder-tab"><span>📦</span><p>Aucun mod installé.<br>Utilise les boutons <strong>+ Fichiers JAR</strong> ou <strong>+ Dossier</strong> pour en ajouter.</p></div>';
-  const html = mods.length ? mods.map((m, i) => `
-    <div class="mod-item ${m.enabled ? 'active' : ''}">
-      <div class="mod-icon">${icons[i % icons.length]}</div>
-      <div class="mod-info">
-        <span class="mod-name">${m.name}</span>
-        ${m.version ? `<span class="mod-version">${m.version}</span>` : ''}
-      </div>
-      <label class="toggle">
-        <input type="checkbox" ${m.enabled ? 'checked' : ''} onchange="toggleMod(${i}, this.checked)">
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-  `).join('') : empty;
-  const el = document.getElementById('mods-list');
+  let html = '';
+  let totalCount = 0, enabledCount = 0;
+
+  // ── Section distribution (Nebula) ──
+  if (distributionModules.length > 0) {
+    const distHtml = distributionModules.map((m, i) => {
+      const isRequired = m.required !== false;
+      const isEnabled  = isRequired || getOptionalModState(m.id);
+      if (isEnabled) enabledCount++;
+      totalCount++;
+      if (isRequired) {
+        return `
+          <div class="mod-item active">
+            <div class="mod-icon">${icons[i % icons.length]}</div>
+            <div class="mod-info">
+              <span class="mod-name">${m.name}</span>
+              <span class="mod-version">${m.type || 'ForgeMod'}</span>
+            </div>
+            <span class="mod-badge required">Requis</span>
+          </div>`;
+      }
+      return `
+        <div class="mod-item ${isEnabled ? 'active' : ''}">
+          <div class="mod-icon">${icons[i % icons.length]}</div>
+          <div class="mod-info">
+            <span class="mod-name">${m.name}</span>
+            <span class="mod-version">${m.type || 'ForgeMod'}</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleOptionalMod('${m.id}', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>`;
+    }).join('');
+    html += `<div class="mods-section">
+      <div class="mods-section-header"><span class="mods-section-title">MODS SERVEUR</span><span class="mods-section-count">${distributionModules.length} modules</span></div>
+      ${distHtml}
+    </div>`;
+  }
+
+  // ── Section mods locaux ──
+  if (localMods && localMods.length > 0) {
+    const localHtml = localMods.map((m, i) => {
+      if (m.enabled) enabledCount++;
+      totalCount++;
+      const idx = (distributionModules.length + i) % icons.length;
+      const modIdx = instanceData.instance.mods.indexOf(m);
+      return `
+        <div class="mod-item ${m.enabled ? 'active' : ''}">
+          <div class="mod-icon">${icons[idx]}</div>
+          <div class="mod-info">
+            <span class="mod-name">${m.name}</span>
+            <span class="mod-version">Mod local</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" ${m.enabled ? 'checked' : ''} onchange="toggleMod(${modIdx}, this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>`;
+    }).join('');
+    html += `<div class="mods-section">
+      <div class="mods-section-header"><span class="mods-section-title">MODS LOCAUX</span><span class="mods-section-count">${localMods.length} mods</span></div>
+      ${localHtml}
+    </div>`;
+  }
+
+  if (!html) {
+    html = '<div class="placeholder-tab"><span>📦</span><p>Aucun mod installé.<br>Utilise les boutons <strong>+ Fichiers JAR</strong> ou <strong>+ Dossier</strong> pour en ajouter.</p></div>';
+  }
+
+  const el  = document.getElementById('mods-list');
   const el2 = document.getElementById('mods-list-global');
   if (el)  el.innerHTML  = html;
   if (el2) el2.innerHTML = html;
+  updateModCounts(enabledCount, totalCount);
 }
 
 async function toggleMod(index, enabled) {
@@ -177,9 +282,8 @@ async function checkAdminUpdate() {
   if (!instanceData) return;
   const manifestUrl = instanceData.admin?.manifest_url;
 
-  // Sans Electron ou sans URL : comparaison locale uniquement
   if (!ipc || !manifestUrl) {
-    const localVer = parseInt(instanceData.admin.instance_version || '1');
+    const localVer = parseInt(instanceData.admin?.instance_version || '1');
     if (localVer > parseInt(localInstanceVersion)) {
       showUpdateBanner(instanceData.admin.changelog, instanceData.admin.force_update);
     }
@@ -189,27 +293,52 @@ async function checkAdminUpdate() {
   try {
     const result = await ipc.checkUpdate(manifestUrl);
     if (!result.success) return;
+    const remote = result.manifest;
 
-    const remote    = result.manifest;
-    const remoteVer = parseInt(remote?.admin?.instance_version || '0');
-    const localVer  = parseInt(localInstanceVersion || '1');
+    if (remote?.servers) {
+      // ── Format distribution Nebula ──
+      const server = remote.servers.find(s => s.id === 'terranova') || remote.servers[0];
+      if (!server) return;
 
-    if (remoteVer > localVer) {
-      // Injection des données distantes dans instanceData pour le download
-      instanceData.admin.instance_version = remote.admin.instance_version;
-      instanceData.admin.changelog        = remote.admin.changelog || '';
-      instanceData.admin.files            = remote.admin.files     || [];
-      instanceData.admin.force_update     = remote.admin.force_update || false;
+      distributionData    = remote;
+      distributionModules = server.modules || [];
+      reRenderModsPanel();
 
-      // Rafraîchit le panel changelog avec les données distantes
-      const badge  = document.getElementById('changelog-version');
-      const text   = document.getElementById('changelog-text');
+      const badge   = document.getElementById('changelog-version');
+      const text    = document.getElementById('changelog-text');
       const remote2 = document.getElementById('changelog-remote-ver');
-      if (badge)   badge.textContent  = `v${remote.admin.instance_version}`;
-      if (text)    text.textContent   = remote.admin.changelog || '';
-      if (remote2) remote2.textContent = `v${remote.admin.instance_version}`;
+      if (badge)   badge.textContent   = `v${server.instanceVersion || '?'}`;
+      if (text)    text.textContent    = server.changelog || '';
+      if (remote2) remote2.textContent = `v${server.instanceVersion || '?'}`;
 
-      showUpdateBanner(remote.admin.changelog, remote.admin.force_update);
+      const remoteVer = parseInt(server.instanceVersion || '0');
+      const localVer  = parseInt(localInstanceVersion || '1');
+      if (remoteVer > localVer) {
+        instanceData.admin.instance_version = server.instanceVersion;
+        instanceData.admin.changelog        = server.changelog || '';
+        instanceData.admin.force_update     = server.forceUpdate || false;
+        showUpdateBanner(server.changelog, server.forceUpdate || false);
+      }
+    } else {
+      // ── Ancien format instance.json ──
+      const remoteVer = parseInt(remote?.admin?.instance_version || '0');
+      const localVer  = parseInt(localInstanceVersion || '1');
+
+      if (remoteVer > localVer) {
+        instanceData.admin.instance_version = remote.admin.instance_version;
+        instanceData.admin.changelog        = remote.admin.changelog || '';
+        instanceData.admin.files            = remote.admin.files     || [];
+        instanceData.admin.force_update     = remote.admin.force_update || false;
+
+        const badge   = document.getElementById('changelog-version');
+        const text    = document.getElementById('changelog-text');
+        const remote2 = document.getElementById('changelog-remote-ver');
+        if (badge)   badge.textContent   = `v${remote.admin.instance_version}`;
+        if (text)    text.textContent    = remote.admin.changelog || '';
+        if (remote2) remote2.textContent = `v${remote.admin.instance_version}`;
+
+        showUpdateBanner(remote.admin.changelog, remote.admin.force_update);
+      }
     }
   } catch {
     // Silencieux — pas de réseau ou serveur indisponible
@@ -264,8 +393,8 @@ async function startUpdate() {
       setProgress(data.globalPct, label, count);
     });
 
-    const files       = instanceData.admin.files || [];
-    const instanceDir = instanceData.instance.path;
+    const files       = getDistributionFiles();
+    const instanceDir = realInstanceDir || instanceData.instance.path;
     setProgress(0, 'Démarrage...', `0 / ${files.length} fichiers`);
 
     const result = await ipc.startUpdate(instanceDir, files);
@@ -1113,16 +1242,19 @@ function startUpdatePolling() {
     try {
       const res = await ipc.checkUpdate(url);
       if (!res.success) return;
-      const remoteVer = parseInt(res.manifest?.admin?.instance_version || '0');
-      const localVer  = parseInt(localInstanceVersion || '1');
+      const remote = res.manifest;
+      let remoteVer;
+      if (remote?.servers) {
+        const server = remote.servers.find(s => s.id === 'terranova') || remote.servers[0];
+        remoteVer = parseInt(server?.instanceVersion || '0');
+      } else {
+        remoteVer = parseInt(remote?.admin?.instance_version || '0');
+      }
+      const localVer = parseInt(localInstanceVersion || '1');
       if (remoteVer > localVer) {
-        showToast('🔔 Mise à jour de l\'instance disponible !');
-        // Injecte les données distantes pour que le bouton "Mettre à jour" fonctionne
-        instanceData.admin.instance_version = res.manifest.admin.instance_version;
-        instanceData.admin.changelog        = res.manifest.admin.changelog || '';
-        instanceData.admin.files            = res.manifest.admin.files     || [];
-        instanceData.admin.force_update     = res.manifest.admin.force_update || false;
-        showUpdateBanner(instanceData.admin.changelog, false);
+        const changelog = remote?.servers?.[0]?.changelog || remote?.admin?.changelog || '';
+        showToast('Mise à jour de l\'instance disponible !');
+        showUpdateBanner(changelog, false);
       }
     } catch {}
   }, 5 * 60 * 1000);
@@ -1138,15 +1270,7 @@ async function loadRealMods() {
     enabled:  m.enabled,
     filename: m.filename,
   }));
-  renderMods(instanceData.instance.mods);
-  const total   = mods.length;
-  const enabled = mods.filter(m => m.enabled).length;
-  const modsCountEl = document.getElementById('mods-count');
-  const statusEl    = document.getElementById('status-mods');
-  const enabledEl   = document.getElementById('mods-enabled-count');
-  if (modsCountEl) modsCountEl.textContent = total;
-  if (statusEl)    statusEl.textContent    = `${enabled} / ${total}`;
-  if (enabledEl)   enabledEl.textContent   = `${enabled} / ${total} mods actifs`;
+  reRenderModsPanel();
 }
 
 // ── Crash reporter ────────────────────────────────────────────────────────────
@@ -1342,16 +1466,27 @@ function startServerPolling() {
 
 // ── Panel Admin ──────────────────────────────────────────────────────────────
 function adminLoad() {
-  if (!instanceData?.admin) return;
-  const a = instanceData.admin;
   const el = (id) => document.getElementById(id);
-  el('admin-instance-version').value = a.instance_version || '1';
-  el('admin-local-version').value    = a.local_version    || '1';
-  el('admin-force-update').checked   = !!a.force_update;
-  el('admin-changelog').value        = a.changelog        || '';
-  el('admin-files').value = (a.files || []).map(f =>
-    `${f.path} | ${f.url} | ${f.sha256} | ${f.size}`
-  ).join('\n');
+  if (distributionData?.servers?.length) {
+    const server = distributionData.servers[0];
+    el('admin-instance-version').value = server.instanceVersion || '1';
+    el('admin-local-version').value    = localInstanceVersion   || '1';
+    el('admin-force-update').checked   = !!server.forceUpdate;
+    el('admin-changelog').value        = server.changelog       || '';
+    el('admin-files').value = (server.modules || []).map(m => {
+      const a = m.artifact || {};
+      return `${a.path || ''} | ${a.url || ''} | ${a.sha256 || a.md5 || 'placeholder'} | ${a.size || 0} | ${m.required !== false ? 'true' : 'false'} | ${m.name || ''} | ${m.type || 'ForgeMod'}`;
+    }).join('\n');
+  } else if (instanceData?.admin) {
+    const a = instanceData.admin;
+    el('admin-instance-version').value = a.instance_version || '1';
+    el('admin-local-version').value    = a.local_version    || '1';
+    el('admin-force-update').checked   = !!a.force_update;
+    el('admin-changelog').value        = a.changelog        || '';
+    el('admin-files').value = (a.files || []).map(f =>
+      `${f.path} | ${f.url} | ${f.sha256} | ${f.size}`
+    ).join('\n');
+  }
 }
 
 function adminBuildData() {
@@ -1363,22 +1498,61 @@ function adminBuildData() {
   });
   return {
     instance_version: el('admin-instance-version').value.trim(),
-    local_version:    instanceData.admin.local_version || '1',
+    local_version:    instanceData.admin?.local_version || '1',
     changelog:        el('admin-changelog').value.trim(),
     force_update:     el('admin-force-update').checked,
-    manifest_url:     instanceData.admin.manifest_url,
+    manifest_url:     instanceData.admin?.manifest_url,
     files,
   };
 }
 
 function adminSave() {
   if (!fs || !path) { showToast('Disponible uniquement dans l\'app Electron'); return; }
+
+  if (distributionData?.servers?.length) {
+    const server = distributionData.servers[0];
+    const el = (id) => document.getElementById(id);
+    server.instanceVersion = el('admin-instance-version').value.trim();
+    server.changelog       = el('admin-changelog').value.trim();
+    server.forceUpdate     = el('admin-force-update').checked;
+
+    const filesRaw = el('admin-files').value.trim().split('\n').filter(Boolean);
+    server.modules = filesRaw.map(line => {
+      const parts = line.split('|').map(s => s.trim());
+      const [p, url, sha256, size, reqStr, name, type] = parts;
+      const baseName = (p || 'mod').split('/').pop().replace(/\.(jar|zip)$/i, '');
+      return {
+        id:       `terranova:${baseName}:auto`,
+        name:     name || baseName,
+        type:     type || 'ForgeMod',
+        required: reqStr !== 'false',
+        artifact: { path: p || '', url: url || '', sha256: sha256 || 'placeholder', size: parseInt(size) || 0 },
+      };
+    });
+
+    const jsonPath = path.join(__dirname, 'distribution.json');
+    try {
+      fs.writeFileSync(jsonPath, JSON.stringify(distributionData, null, 2), 'utf8');
+      distributionModules = server.modules;
+      reRenderModsPanel();
+      const badge   = document.getElementById('changelog-version');
+      const text    = document.getElementById('changelog-text');
+      const remote2 = document.getElementById('changelog-remote-ver');
+      if (badge)   badge.textContent   = `v${server.instanceVersion}`;
+      if (text)    text.textContent    = server.changelog || '';
+      if (remote2) remote2.textContent = `v${server.instanceVersion}`;
+      showToast('✅ distribution.json sauvegardé — pousse sur GitHub pour déployer');
+    } catch (e) {
+      showToast('Erreur : ' + e.message);
+    }
+    return;
+  }
+
   const newAdmin = adminBuildData();
   instanceData.admin = newAdmin;
   const jsonPath = path.join(__dirname, 'instance.json');
   try {
     fs.writeFileSync(jsonPath, JSON.stringify(instanceData, null, 2), 'utf8');
-    // Rafraîchit le badge changelog
     const badge  = document.getElementById('changelog-version');
     const text   = document.getElementById('changelog-text');
     const remote = document.getElementById('changelog-remote-ver');
@@ -1396,7 +1570,9 @@ function adminSave() {
 function adminPreview() {
   const pre = document.getElementById('admin-json-preview');
   if (pre.style.display === 'none') {
-    pre.textContent = JSON.stringify({ admin: adminBuildData() }, null, 2);
+    pre.textContent = distributionData?.servers?.length
+      ? JSON.stringify(distributionData, null, 2)
+      : JSON.stringify({ admin: adminBuildData() }, null, 2);
     pre.style.display = 'block';
   } else {
     pre.style.display = 'none';
@@ -1410,22 +1586,32 @@ async function adminPickMods() {
 
   const textarea = document.getElementById('admin-files');
   const baseUrl  = 'https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/';
-  const lines    = files.map(f =>
-    `mods/${f.filename} | ${baseUrl}${f.filename} | ${f.sha256} | ${f.size}`
-  );
+  const lines    = files.map(f => {
+    const name = f.filename.replace(/[-_]/g, ' ').replace(/\.(jar|zip)$/i, '');
+    return `mods/${f.filename} | ${baseUrl}${f.filename} | ${f.sha256} | ${f.size} | true | ${name} | ForgeMod`;
+  });
   const existing = textarea.value.trim();
   textarea.value = existing ? existing + '\n' + lines.join('\n') : lines.join('\n');
   showToast(`✅ ${files.length} fichier(s) ajouté(s) — remplace l'URL par ton hébergement`);
 }
 
 function adminSimulateUpdate() {
-  const a = adminBuildData();
-  instanceData.admin = a;
-  const badge  = document.getElementById('changelog-version');
-  const text   = document.getElementById('changelog-text');
-  if (badge) badge.textContent = `v${a.instance_version}`;
-  if (text)  text.textContent  = a.changelog;
-  showUpdateBanner(a.changelog, a.force_update);
+  if (distributionData?.servers?.length) {
+    const server = distributionData.servers[0];
+    const el = (id) => document.getElementById(id);
+    server.instanceVersion = el('admin-instance-version').value.trim();
+    server.changelog       = el('admin-changelog').value.trim();
+    server.forceUpdate     = el('admin-force-update').checked;
+    showUpdateBanner(server.changelog, server.forceUpdate);
+  } else {
+    const a = adminBuildData();
+    instanceData.admin = a;
+    const badge = document.getElementById('changelog-version');
+    const text  = document.getElementById('changelog-text');
+    if (badge) badge.textContent = `v${a.instance_version}`;
+    if (text)  text.textContent  = a.changelog;
+    showUpdateBanner(a.changelog, a.force_update);
+  }
   showTab('instance');
   showToast('Simulation : bannière de MAJ affichée');
 }

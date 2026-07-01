@@ -25,30 +25,10 @@
         "port": 25589
     },
     "admin": {
-        "instance_version": "2",
+        "instance_version": "3",
         "local_version": "1",
         "changelog": "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",
         "force_update": false,
-        "manifest_url": "https://raw.githubusercontent.com/ShadowLiveDiscord/terranova-launcher/master/instance.json",
-        "files": [
-            {
-                "path": "mods/biomes-o-plenty-1.21.1.jar",
-                "url": "https://cdn.terranova.fr/mods/biomes-o-plenty-1.21.1.jar",
-                "sha256": "placeholder",
-                "size": 8234567
-            },
-            {
-                "path": "mods/journeymap-1.21.1.jar",
-                "url": "https://cdn.terranova.fr/mods/journeymap-1.21.1.jar",
-                "sha256": "placeholder",
-                "size": 2890000
-            },
-            {
-                "path": "mods/just-enough-items-1.21.1.jar",
-                "url": "https://cdn.terranova.fr/mods/just-enough-items-1.21.1.jar",
-                "sha256": "placeholder",
-                "size": 1540000
-            }
-        ]
+        "manifest_url": "https://raw.githubusercontent.com/ShadowLiveDiscord/terranova-launcher/master/distribution.json"
     }
 }
