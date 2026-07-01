@@ -248,6 +248,8 @@ body.has-update .app-layout { top: 64px; }
   border-left-color: var(--green);
 }
 .nav-icon { font-size: 14px; width: 16px; text-align: center; flex-shrink: 0; }
+.nav-icon-img { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; opacity: 0.7; }
+.nav-item:hover .nav-icon-img, .nav-item.active .nav-icon-img { opacity: 1; }
 
 /* Icons sprite small */
 .icon-sprite { background-image: url('assets/icons.png'); background-size: 300% 200%; background-repeat: no-repeat; display: inline-block; }
