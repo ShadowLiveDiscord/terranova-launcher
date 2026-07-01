@@ -277,11 +277,78 @@ async function toggleMod(index, enabled) {
   if (enabledEl) enabledEl.textContent = `${active} / ${total} mods actifs`;
 }
 
-// ── Vérification MAJ admin (distante) ──
+// ── Applique un manifest distant (Nebula ou ancien format) ──────────────────
+function applyRemoteManifest(remote) {
+  if (remote?.servers) {
+    const server = remote.servers.find(s => s.id === 'terranova') || remote.servers[0];
+    if (!server) return;
+
+    distributionData    = remote;
+    distributionModules = server.modules || [];
+    reRenderModsPanel();
+
+    const badge   = document.getElementById('changelog-version');
+    const text    = document.getElementById('changelog-text');
+    const remote2 = document.getElementById('changelog-remote-ver');
+    if (badge)   badge.textContent   = `v${server.instanceVersion || '?'}`;
+    if (text)    text.textContent    = server.changelog || '';
+    if (remote2) remote2.textContent = `v${server.instanceVersion || '?'}`;
+
+    const remoteVer = parseInt(server.instanceVersion || '0');
+    const localVer  = parseInt(localInstanceVersion || '1');
+    if (remoteVer > localVer) {
+      instanceData.admin.instance_version = server.instanceVersion;
+      instanceData.admin.changelog        = server.changelog || '';
+      instanceData.admin.force_update     = server.forceUpdate || false;
+      showUpdateBanner(server.changelog, server.forceUpdate || false);
+    }
+  } else if (remote?.admin) {
+    const remoteVer = parseInt(remote.admin.instance_version || '0');
+    const localVer  = parseInt(localInstanceVersion || '1');
+
+    if (remoteVer > localVer) {
+      instanceData.admin.instance_version = remote.admin.instance_version;
+      instanceData.admin.changelog        = remote.admin.changelog || '';
+      instanceData.admin.files            = remote.admin.files     || [];
+      instanceData.admin.force_update     = remote.admin.force_update || false;
+
+      const badge   = document.getElementById('changelog-version');
+      const text    = document.getElementById('changelog-text');
+      const remote2 = document.getElementById('changelog-remote-ver');
+      if (badge)   badge.textContent   = `v${remote.admin.instance_version}`;
+      if (text)    text.textContent    = remote.admin.changelog || '';
+      if (remote2) remote2.textContent = `v${remote.admin.instance_version}`;
+
+      showUpdateBanner(remote.admin.changelog, remote.admin.force_update);
+    }
+  }
+}
+
+// ── Vérification MAJ admin (locale d'abord, puis distante) ──────────────────
 async function checkAdminUpdate() {
   if (!instanceData) return;
-  const manifestUrl = instanceData.admin?.manifest_url;
 
+  // Priorité au distribution.json local sauvegardé par l'admin
+  // (dans resourcesPath en mode packagé, ou __dirname en dev)
+  if (fs && path) {
+    const writableDir = (typeof __dirname !== 'undefined' && __dirname.includes('app.asar'))
+      ? process.resourcesPath
+      : (typeof __dirname !== 'undefined' ? __dirname : null);
+    if (writableDir) {
+      const localDistPath = path.join(writableDir, 'distribution.json');
+      if (fs.existsSync(localDistPath)) {
+        try {
+          const localDist = JSON.parse(fs.readFileSync(localDistPath, 'utf8'));
+          if (localDist?.servers?.length) {
+            applyRemoteManifest(localDist);
+            return; // Pas besoin de fetch GitHub
+          }
+        } catch {}
+      }
+    }
+  }
+
+  const manifestUrl = instanceData.admin?.manifest_url;
   if (!ipc || !manifestUrl) {
     const localVer = parseInt(instanceData.admin?.instance_version || '1');
     if (localVer > parseInt(localInstanceVersion)) {
@@ -293,53 +360,7 @@ async function checkAdminUpdate() {
   try {
     const result = await ipc.checkUpdate(manifestUrl);
     if (!result.success) return;
-    const remote = result.manifest;
-
-    if (remote?.servers) {
-      // ── Format distribution Nebula ──
-      const server = remote.servers.find(s => s.id === 'terranova') || remote.servers[0];
-      if (!server) return;
-
-      distributionData    = remote;
-      distributionModules = server.modules || [];
-      reRenderModsPanel();
-
-      const badge   = document.getElementById('changelog-version');
-      const text    = document.getElementById('changelog-text');
-      const remote2 = document.getElementById('changelog-remote-ver');
-      if (badge)   badge.textContent   = `v${server.instanceVersion || '?'}`;
-      if (text)    text.textContent    = server.changelog || '';
-      if (remote2) remote2.textContent = `v${server.instanceVersion || '?'}`;
-
-      const remoteVer = parseInt(server.instanceVersion || '0');
-      const localVer  = parseInt(localInstanceVersion || '1');
-      if (remoteVer > localVer) {
-        instanceData.admin.instance_version = server.instanceVersion;
-        instanceData.admin.changelog        = server.changelog || '';
-        instanceData.admin.force_update     = server.forceUpdate || false;
-        showUpdateBanner(server.changelog, server.forceUpdate || false);
-      }
-    } else {
-      // ── Ancien format instance.json ──
-      const remoteVer = parseInt(remote?.admin?.instance_version || '0');
-      const localVer  = parseInt(localInstanceVersion || '1');
-
-      if (remoteVer > localVer) {
-        instanceData.admin.instance_version = remote.admin.instance_version;
-        instanceData.admin.changelog        = remote.admin.changelog || '';
-        instanceData.admin.files            = remote.admin.files     || [];
-        instanceData.admin.force_update     = remote.admin.force_update || false;
-
-        const badge   = document.getElementById('changelog-version');
-        const text    = document.getElementById('changelog-text');
-        const remote2 = document.getElementById('changelog-remote-ver');
-        if (badge)   badge.textContent   = `v${remote.admin.instance_version}`;
-        if (text)    text.textContent    = remote.admin.changelog || '';
-        if (remote2) remote2.textContent = `v${remote.admin.instance_version}`;
-
-        showUpdateBanner(remote.admin.changelog, remote.admin.force_update);
-      }
-    }
+    applyRemoteManifest(result.manifest);
   } catch {
     // Silencieux — pas de réseau ou serveur indisponible
   }
@@ -1546,8 +1567,17 @@ function adminSave() {
       if (badge)   badge.textContent   = `v${server.instanceVersion}`;
       if (text)    text.textContent    = server.changelog || '';
       if (remote2) remote2.textContent = `v${server.instanceVersion}`;
-      showToast('✅ distribution.json sauvegardé — pousse sur GitHub pour déployer');
+      showToast('✅ distribution.json sauvegardé');
       loadRealMods();
+      // Déclenche la bannière de MAJ si la version a été bumped
+      const savedVer = parseInt(server.instanceVersion || '0');
+      const currLocalVer = parseInt(localInstanceVersion || '1');
+      if (savedVer > currLocalVer) {
+        instanceData.admin.instance_version = server.instanceVersion;
+        instanceData.admin.changelog        = server.changelog || '';
+        instanceData.admin.force_update     = server.forceUpdate || false;
+        showUpdateBanner(server.changelog, server.forceUpdate || false);
+      }
     } catch (e) {
       showToast('Erreur écriture : ' + e.message);
     }
