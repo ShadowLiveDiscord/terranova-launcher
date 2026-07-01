@@ -1,63 +1,111 @@
-{
-  "instance": {
-    "name": "TerraNova",
-    "version": "1.21.1",
-    "loader": "NeoForge 21.1.233",
-    "java": "21",
-    "description": "Ma configuration personnelle avec mes mods préférés pour une expérience survie optimale !",
-    "icon": "assets/icons.png",
-    "mods_count": 12,
-    "resource_packs": 3,
-    "shaders": "BSL v8.2",
-    "ram_mb": 6144,
-    "path": "C:\\TerraNova\\instances\\terranova",
-    "last_launch": "Aujourd'hui à 14:35",
-    "playtime": "12h 47m",
-    "mods": [
-      { "name": "Biomes O' Plenty",      "version": "18.0.0.688", "enabled": true },
-      { "name": "Optifine",              "version": "HD U I6",    "enabled": true },
-      { "name": "JourneyMap",            "version": "5.9.18",     "enabled": true },
-      { "name": "Chisel & Bits",         "version": "2.5.0",      "enabled": true },
-      { "name": "Inventory Tweaks",      "version": "1.64",       "enabled": true },
-      { "name": "Just Enough Items",     "version": "15.3.0",     "enabled": true },
-      { "name": "Waystones",             "version": "14.1.3",     "enabled": true },
-      { "name": "Farmer's Delight",      "version": "1.2.4",      "enabled": true },
-      { "name": "Alex's Mobs",           "version": "1.22.8",     "enabled": true },
-      { "name": "Tinkers Construct",     "version": "3.8.4",      "enabled": true },
-      { "name": "Immersive Engineering", "version": "10.1.0",     "enabled": true },
-      { "name": "Applied Energistics",   "version": "15.2.1",     "enabled": false }
-    ]
-  },
-  "launcher": {
-    "version": "1.2.0",
-    "latest_version": "1.2.0",
-    "update_url": ""
-  },
-  "admin": {
-    "instance_version": "2",
-    "local_version": "1",
-    "changelog": "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",
-    "force_update": false,
-    "manifest_url": "https://cdn.terranova.fr/instance.json",
-    "files": [
-      {
-        "path": "mods/biomes-o-plenty-1.21.1.jar",
-        "url": "https://cdn.terranova.fr/mods/biomes-o-plenty-1.21.1.jar",
-        "sha256": "placeholder",
-        "size": 8234567
-      },
-      {
-        "path": "mods/journeymap-1.21.1.jar",
-        "url": "https://cdn.terranova.fr/mods/journeymap-1.21.1.jar",
-        "sha256": "placeholder",
-        "size": 2890000
-      },
-      {
-        "path": "mods/just-enough-items-1.21.1.jar",
-        "url": "https://cdn.terranova.fr/mods/just-enough-items-1.21.1.jar",
-        "sha256": "placeholder",
-        "size": 1540000
-      }
-    ]
-  }
+﻿{
+    "instance":  {
+                     "name":  "TerraNova",
+                     "version":  "1.21.1",
+                     "loader":  "NeoForge 21.1.233",
+                     "java":  "21",
+                     "description":  "Ma configuration personnelle avec mes mods prÃ©fÃ©rÃ©s pour une expÃ©rience survie optimale !",
+                     "icon":  "assets/icons.png",
+                     "mods_count":  12,
+                     "resource_packs":  3,
+                     "shaders":  "BSL v8.2",
+                     "ram_mb":  6144,
+                     "path":  "C:\\TerraNova\\instances\\terranova",
+                     "last_launch":  "Aujourd\u0027hui Ã  14:35",
+                     "playtime":  "12h 47m",
+                     "mods":  [
+                                  {
+                                      "name":  "Biomes O\u0027 Plenty",
+                                      "version":  "18.0.0.688",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Optifine",
+                                      "version":  "HD U I6",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "JourneyMap",
+                                      "version":  "5.9.18",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Chisel \u0026 Bits",
+                                      "version":  "2.5.0",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Inventory Tweaks",
+                                      "version":  "1.64",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Just Enough Items",
+                                      "version":  "15.3.0",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Waystones",
+                                      "version":  "14.1.3",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Farmer\u0027s Delight",
+                                      "version":  "1.2.4",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Alex\u0027s Mobs",
+                                      "version":  "1.22.8",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Tinkers Construct",
+                                      "version":  "3.8.4",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Immersive Engineering",
+                                      "version":  "10.1.0",
+                                      "enabled":  true
+                                  },
+                                  {
+                                      "name":  "Applied Energistics",
+                                      "version":  "15.2.1",
+                                      "enabled":  false
+                                  }
+                              ]
+                 },
+    "launcher":  {
+                     "version":  "1.2.1",
+                     "latest_version":  "1.2.0",
+                     "update_url":  ""
+                 },
+    "admin":  {
+                  "instance_version":  "2",
+                  "local_version":  "1",
+                  "changelog":  "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",
+                  "force_update":  false,
+                  "manifest_url":  "https://cdn.terranova.fr/instance.json",
+                  "files":  [
+                                {
+                                    "path":  "mods/biomes-o-plenty-1.21.1.jar",
+                                    "url":  "https://cdn.terranova.fr/mods/biomes-o-plenty-1.21.1.jar",
+                                    "sha256":  "placeholder",
+                                    "size":  8234567
+                                },
+                                {
+                                    "path":  "mods/journeymap-1.21.1.jar",
+                                    "url":  "https://cdn.terranova.fr/mods/journeymap-1.21.1.jar",
+                                    "sha256":  "placeholder",
+                                    "size":  2890000
+                                },
+                                {
+                                    "path":  "mods/just-enough-items-1.21.1.jar",
+                                    "url":  "https://cdn.terranova.fr/mods/just-enough-items-1.21.1.jar",
+                                    "sha256":  "placeholder",
+                                    "size":  1540000
+                                }
+                            ]
+              }
 }

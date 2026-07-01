@@ -10,7 +10,6 @@ const LaunchManager    = require('./src/launch/LaunchManager');
 const DiscordManager   = require('./src/discord/DiscordManager');
 const SecurityManager  = require('./src/security/SecurityManager');
 
-app.commandLine.appendSwitch('disable-features', 'NetworkService');
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-gpu-sandbox');
 

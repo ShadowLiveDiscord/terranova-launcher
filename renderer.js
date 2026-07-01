@@ -607,7 +607,7 @@ function handleAppUpdateStatus(data) {
     case 'error':
       appUpdateState = 'idle';
       if (manualUpdateCheck) {
-        showToast('Impossible de vérifier les mises à jour : ' + (data.message || 'erreur réseau'));
+        showToast('Impossible de vérifier les mises à jour : ' + (data.error || 'erreur réseau'));
         manualUpdateCheck = false;
       }
       break;

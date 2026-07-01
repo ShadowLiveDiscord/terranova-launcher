@@ -1,49 +1,49 @@
-{
-  "name": "terranova-launcher",
-  "version": "1.2.0",
-  "description": "TerraNova Minecraft Launcher",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "dev": "electron . --dev",
-    "dist": "electron-builder",
-    "release": "electron-builder --publish always"
-  },
-  "devDependencies": {
-    "electron": "^31.7.7",
-    "electron-builder": "^26.15.3"
-  },
-  "dependencies": {
-    "discord-rpc": "^4.0.1",
-    "electron-store": "^8.2.0",
-    "electron-updater": "^6.8.9",
-    "minecraft-launcher-core": "^3.18.2",
-    "node-fetch": "^2.7.0"
-  },
-  "build": {
-    "appId": "fr.terranova.launcher",
-    "productName": "TerraNova Launcher",
-    "files": [
-      "main.js",
-      "renderer.js",
-      "index.html",
-      "styles.css",
-      "src/**/*",
-      "assets/**/*",
-      "instance.json"
-    ],
-    "win": {
-      "target": "nsis",
-      "icon": "assets/logo.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "ShadowLiveDiscord",
-      "repo": "terranova-launcher"
-    }
-  }
+﻿{
+    "name":  "terranova-launcher",
+    "version":  "1.2.1",
+    "description":  "TerraNova Minecraft Launcher",
+    "main":  "main.js",
+    "scripts":  {
+                    "start":  "electron .",
+                    "dev":  "electron . --dev",
+                    "dist":  "electron-builder",
+                    "release":  "electron-builder --publish always"
+                },
+    "devDependencies":  {
+                            "electron":  "^31.7.7",
+                            "electron-builder":  "^26.15.3"
+                        },
+    "dependencies":  {
+                         "discord-rpc":  "^4.0.1",
+                         "electron-store":  "^8.2.0",
+                         "electron-updater":  "^6.8.9",
+                         "minecraft-launcher-core":  "^3.18.2",
+                         "node-fetch":  "^2.7.0"
+                     },
+    "build":  {
+                  "appId":  "fr.terranova.launcher",
+                  "productName":  "TerraNova Launcher",
+                  "files":  [
+                                "main.js",
+                                "renderer.js",
+                                "index.html",
+                                "styles.css",
+                                "src/**/*",
+                                "assets/**/*",
+                                "instance.json"
+                            ],
+                  "win":  {
+                              "target":  "nsis",
+                              "icon":  "assets/logo.ico"
+                          },
+                  "nsis":  {
+                               "oneClick":  false,
+                               "allowToChangeInstallationDirectory":  true
+                           },
+                  "publish":  {
+                                  "provider":  "github",
+                                  "owner":  "ShadowLiveDiscord",
+                                  "repo":  "terranova-launcher"
+                              }
+              }
 }
