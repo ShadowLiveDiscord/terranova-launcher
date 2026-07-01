@@ -540,7 +540,7 @@ function cancelLaunch() {
 }
 
 function quitApp() { ipcRenderer?.send('close-window'); }
-function checkUpdate() { checkAdminUpdate(); }
+function checkUpdate() { checkLauncherUpdate(); }
 
 // ── Mise à jour automatique du launcher (electron-updater) ───────────────────
 let appUpdateState = 'idle'; // idle | available | downloading | downloaded
