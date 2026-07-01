@@ -33,7 +33,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "assets/logo.png"
+      "icon": "assets/logo.ico"
     },
     "nsis": {
       "oneClick": false,
