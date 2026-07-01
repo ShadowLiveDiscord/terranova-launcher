@@ -18,6 +18,7 @@ const ipc = ipcRenderer ? {
   openExternal:      (url) => ipcRenderer.invoke('shell:openExternal', url),
   openFolderDialog:  () => ipcRenderer.invoke('dialog:openFolder'),
   getInstanceDir:    () => ipcRenderer.invoke('app:getInstanceDir'),
+  getAppVersion:     () => ipcRenderer.invoke('app:getVersion'),
   // Jeu
   launch:            (opts) => ipcRenderer.invoke('game:launch', opts),
   killGame:          () => ipcRenderer.send('game:kill'),
@@ -872,6 +873,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   startRamPolling();
 
   if (ipc) {
+    // Version dynamique depuis app.getVersion()
+    ipc.getAppVersion().then(v => {
+      const el = document.getElementById('sidebar-version');
+      if (el) el.textContent = 'Launcher v' + v;
+    }).catch(() => {});
+
     // Résoudre le chemin AppData réel dès le démarrage
     ipc.getInstanceDir().then(dir => {
       realInstanceDir = dir;

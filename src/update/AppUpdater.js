@@ -24,7 +24,7 @@ function init(mainWindow) {
   });
 
   autoUpdater.on('update-not-available', () => {
-    send('app-update:status', { state: 'not-available' });
+    send('app-update:status', { state: 'not-available', version: app.getVersion() });
   });
 
   autoUpdater.on('download-progress', (progress) => {

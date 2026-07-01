@@ -107,6 +107,7 @@ ipcMain.handle('update:start', async (event, { instanceDir, files }) => {
 });
 
 // ── Mise à jour automatique du launcher (electron-updater / GitHub Releases) ──
+ipcMain.handle('app:getVersion',      () => app.getVersion());
 ipcMain.handle('app-update:check',   () => AppUpdater.checkForUpdates());
 ipcMain.handle('app-update:download', () => AppUpdater.downloadUpdate());
 ipcMain.on('app-update:install', () => AppUpdater.quitAndInstall());

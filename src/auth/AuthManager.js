@@ -232,6 +232,14 @@ async function autoLogin() {
 
   // Si le token MC est encore valide (marge de 5 min)
   if (session.tokens.mcTokenExpires - Date.now() > 5 * 60 * 1000) {
+    // Re-fetch le profil si le skin est absent (session stockée par ancienne version)
+    if (!session.profile.skin) {
+      try {
+        const profile = await getMinecraftProfile(session.tokens.mcAccessToken);
+        session.profile.skin = profile.skins?.[0]?.url ?? null;
+        saveSession(session);
+      } catch {}
+    }
     return session;
   }
 
@@ -245,6 +253,13 @@ async function autoLogin() {
     session.tokens.msRefreshToken = msTokens.refresh_token;
     session.tokens.mcAccessToken  = mcTokens.access_token;
     session.tokens.mcTokenExpires = Date.now() + mcTokens.expires_in * 1000;
+
+    // Refresh le profil pour mettre à jour le skin
+    try {
+      const profile = await getMinecraftProfile(mcTokens.access_token);
+      session.profile.skin = profile.skins?.[0]?.url ?? session.profile.skin;
+    } catch {}
+
     saveSession(session);
     return session;
   } catch (e) {
