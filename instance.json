@@ -86,7 +86,7 @@
                   "local_version":  "1",
                   "changelog":  "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",
                   "force_update":  false,
-                  "manifest_url":  "https://cdn.terranova.fr/instance.json",
+                  "manifest_url":  "https://raw.githubusercontent.com/ShadowLiveDiscord/terranova-launcher/master/instance.json",
                   "files":  [
                                 {
                                     "path":  "mods/biomes-o-plenty-1.21.1.jar",

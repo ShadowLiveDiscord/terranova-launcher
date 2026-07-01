@@ -143,12 +143,47 @@ function toggleMod(index, enabled) {
   document.getElementById('mods-enabled-count').textContent = `${active} / ${total} mods actifs`;
 }
 
-// ── Vérification MAJ admin ──
-function checkAdminUpdate() {
+// ── Vérification MAJ admin (distante) ──
+async function checkAdminUpdate() {
   if (!instanceData) return;
-  const adminVersion = instanceData.admin.instance_version;
-  if (parseInt(adminVersion) > parseInt(localInstanceVersion)) {
-    showUpdateBanner(instanceData.admin.changelog, instanceData.admin.force_update);
+  const manifestUrl = instanceData.admin?.manifest_url;
+
+  // Sans Electron ou sans URL : comparaison locale uniquement
+  if (!ipc || !manifestUrl) {
+    const localVer = parseInt(instanceData.admin.instance_version || '1');
+    if (localVer > parseInt(localInstanceVersion)) {
+      showUpdateBanner(instanceData.admin.changelog, instanceData.admin.force_update);
+    }
+    return;
+  }
+
+  try {
+    const result = await ipc.checkUpdate(manifestUrl);
+    if (!result.success) return;
+
+    const remote    = result.manifest;
+    const remoteVer = parseInt(remote?.admin?.instance_version || '0');
+    const localVer  = parseInt(localInstanceVersion || '1');
+
+    if (remoteVer > localVer) {
+      // Injection des données distantes dans instanceData pour le download
+      instanceData.admin.instance_version = remote.admin.instance_version;
+      instanceData.admin.changelog        = remote.admin.changelog || '';
+      instanceData.admin.files            = remote.admin.files     || [];
+      instanceData.admin.force_update     = remote.admin.force_update || false;
+
+      // Rafraîchit le panel changelog avec les données distantes
+      const badge  = document.getElementById('changelog-version');
+      const text   = document.getElementById('changelog-text');
+      const remote2 = document.getElementById('changelog-remote-ver');
+      if (badge)   badge.textContent  = `v${remote.admin.instance_version}`;
+      if (text)    text.textContent   = remote.admin.changelog || '';
+      if (remote2) remote2.textContent = `v${remote.admin.instance_version}`;
+
+      showUpdateBanner(remote.admin.changelog, remote.admin.force_update);
+    }
+  } catch {
+    // Silencieux — pas de réseau ou serveur indisponible
   }
 }
 
