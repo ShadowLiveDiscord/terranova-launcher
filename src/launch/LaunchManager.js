@@ -57,20 +57,32 @@ async function downloadFile(url, dest, onProgress) {
 }
 
 // ── Lancement de l'installateur NeoForge / Forge en headless ─────────────────
+// L'installateur NeoForge/Forge prend le répertoire cible comme argument
+// positionnel après --installClient (pas --installDir). Le cwd est aussi
+// positionné sur installDir pour que "." pointe vers le bon endroit.
 async function runInstaller(javaPath, jarPath, installDir, onLog) {
   return new Promise((resolve, reject) => {
-    const args = ['-jar', jarPath, '--installClient', '--installDir', installDir];
+    // Argument positionnel : java -jar installer.jar --installClient <dir>
+    const args = ['-jar', jarPath, '--installClient', installDir];
     const proc = spawn(javaPath || 'java', args, { cwd: installDir });
     activeProcess = proc;
 
-    const log = (data) => onLog(String(data).trim());
+    const lines = [];
+    const log = (data) => {
+      const s = String(data).trim();
+      if (s) { lines.push(s); onLog(s); }
+    };
     proc.stdout.on('data', log);
     proc.stderr.on('data', log);
 
     proc.on('close', code => {
       activeProcess = null;
-      if (code === 0) resolve();
-      else reject(new Error(`Installateur terminé avec code ${code}`));
+      if (code === 0) {
+        resolve();
+      } else {
+        const tail = lines.slice(-5).join(' | ');
+        reject(new Error(`Installateur NeoForge code ${code} : ${tail}`));
+      }
     });
     proc.on('error', err => { activeProcess = null; reject(err); });
   });
