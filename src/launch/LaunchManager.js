@@ -88,6 +88,18 @@ async function runInstaller(javaPath, jarPath, installDir, onLog) {
   });
 }
 
+// ── Crée launcher_profiles.json si absent (requis par l'installateur NeoForge) ─
+function ensureLauncherProfiles(instanceDir) {
+  const profilesPath = path.join(instanceDir, 'launcher_profiles.json');
+  if (!fs.existsSync(profilesPath)) {
+    fs.writeFileSync(profilesPath, JSON.stringify({
+      profiles: {},
+      settings: {},
+      version: 3,
+    }, null, 2), 'utf8');
+  }
+}
+
 // ── Installation automatique NeoForge ─────────────────────────────────────────
 async function ensureNeoForge(instanceDir, neoforgeVersion, javaPath, onStep) {
   if (isNeoForgeInstalled(instanceDir, neoforgeVersion)) return;
@@ -96,6 +108,7 @@ async function ensureNeoForge(instanceDir, neoforgeVersion, javaPath, onStep) {
   const installerJar = path.join(instanceDir, `neoforge-${neoforgeVersion}-installer.jar`);
 
   fs.mkdirSync(instanceDir, { recursive: true });
+  ensureLauncherProfiles(instanceDir);
 
   onStep({ type: 'setup', msg: `Téléchargement NeoForge ${neoforgeVersion}...`, pct: 0.02 });
   await downloadFile(url, installerJar, pct => {
@@ -119,6 +132,7 @@ async function ensureForge(instanceDir, mcVersion, forgeVersion, javaPath, onSte
   const installerJar = path.join(instanceDir, `forge-${mcVersion}-${forgeVersion}-installer.jar`);
 
   fs.mkdirSync(instanceDir, { recursive: true });
+  ensureLauncherProfiles(instanceDir);
 
   onStep({ type: 'setup', msg: `Téléchargement Forge ${forgeVersion}...`, pct: 0.02 });
   await downloadFile(url, installerJar, pct => {
