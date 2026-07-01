@@ -82,8 +82,8 @@
                      "update_url":  ""
                  },
     "server": {
-    "host": "play.terranova.fr",
-    "port": 25565
+    "host": "45.140.165.18",
+    "port": 25589
   },
   "admin":  {
                   "instance_version":  "2",
