@@ -42,7 +42,19 @@ function init(mainWindow) {
   });
 
   autoUpdater.on('error', (err) => {
-    send('app-update:status', { state: 'error', error: err.message });
+    const msg = err.message || '';
+    let clean;
+    if (msg.includes('404') || msg.includes('Not Found'))
+      clean = 'Aucune mise à jour trouvée sur GitHub (404)';
+    else if (msg.includes('403') || msg.includes('Forbidden') || msg.includes('rate limit'))
+      clean = 'Limite de requêtes GitHub atteinte, réessaie dans une heure';
+    else if (msg.includes('ENOTFOUND') || msg.includes('ECONNREFUSED') || msg.includes('network'))
+      clean = 'Pas de connexion internet';
+    else if (msg.includes('ERR_INTERNET_DISCONNECTED'))
+      clean = 'Pas de connexion internet';
+    else
+      clean = 'Erreur lors de la vérification (' + msg.slice(0, 80) + ')';
+    send('app-update:status', { state: 'error', error: clean });
   });
 }
 
