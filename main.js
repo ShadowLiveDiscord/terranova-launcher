@@ -176,3 +176,24 @@ ipcMain.handle('dialog:openFolder', async () => {
   const r = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] });
   return { canceled: r.canceled, path: r.filePaths[0] || '' };
 });
+
+// ── Dialog : sélectionner des JARs + calcul SHA256 (panel admin) ──────────────
+ipcMain.handle('admin:pickMods', async () => {
+  const r = await dialog.showOpenDialog(mainWindow, {
+    title: 'Sélectionner les fichiers de mods',
+    filters: [{ name: 'Fichiers mod', extensions: ['jar', 'zip', 'json', 'toml'] }, { name: 'Tous', extensions: ['*'] }],
+    properties: ['openFile', 'multiSelections'],
+  });
+  if (r.canceled || !r.filePaths.length) return [];
+
+  const crypto = require('crypto');
+  return r.filePaths.map(fp => {
+    const stat = fs.statSync(fp);
+    const hash = crypto.createHash('sha256').update(fs.readFileSync(fp)).digest('hex');
+    return {
+      filename: path.basename(fp),
+      size:     stat.size,
+      sha256:   hash,
+    };
+  });
+});

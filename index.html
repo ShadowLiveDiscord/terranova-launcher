@@ -389,7 +389,9 @@
           <div class="settings-section">
             <h3>Fichiers à mettre à jour</h3>
             <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Un fichier par ligne : <code style="color:var(--green-bright)">chemin/relatif.jar | https://url.com/fichier.jar | sha256hex | taille_bytes</code></p>
-            <textarea class="notes-area" id="admin-files" style="height:160px;resize:vertical;font-family:monospace;font-size:11px" placeholder="mods/jei-1.21.1.jar | https://cdn.../jei.jar | abc123... | 1540000"></textarea>
+            <button class="mc-btn-inline green" style="margin-bottom:10px" onclick="adminPickMods()">📦 Ajouter des mods (calcul SHA256 auto)</button>
+            <textarea class="notes-area" id="admin-files" style="height:140px;resize:vertical;font-family:monospace;font-size:11px" placeholder="mods/jei-1.21.1.jar | https://cdn.../jei.jar | abc123... | 1540000"></textarea>
+            <p style="font-size:11px;color:var(--muted);margin-top:6px;">💡 Héberge les JARs dans les <strong style="color:var(--text)">GitHub Releases</strong> du repo puis remplace l'URL générée.</p>
           </div>
 
           <div class="settings-section">

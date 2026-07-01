@@ -17,6 +17,7 @@ const ipc = ipcRenderer ? {
   openPath:          (p) => ipcRenderer.invoke('shell:openPath', p),
   openExternal:      (url) => ipcRenderer.invoke('shell:openExternal', url),
   openFolderDialog:  () => ipcRenderer.invoke('dialog:openFolder'),
+  pickMods:          () => ipcRenderer.invoke('admin:pickMods'),
   getInstanceDir:    () => ipcRenderer.invoke('app:getInstanceDir'),
   getAppVersion:     () => ipcRenderer.invoke('app:getVersion'),
   // Jeu
@@ -1100,6 +1101,21 @@ function adminPreview() {
   } else {
     pre.style.display = 'none';
   }
+}
+
+async function adminPickMods() {
+  if (!ipc?.pickMods) { showToast('Disponible uniquement dans l\'app Electron'); return; }
+  const files = await ipc.pickMods();
+  if (!files.length) return;
+
+  const textarea = document.getElementById('admin-files');
+  const baseUrl  = 'https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/';
+  const lines    = files.map(f =>
+    `mods/${f.filename} | ${baseUrl}${f.filename} | ${f.sha256} | ${f.size}`
+  );
+  const existing = textarea.value.trim();
+  textarea.value = existing ? existing + '\n' + lines.join('\n') : lines.join('\n');
+  showToast(`✅ ${files.length} fichier(s) ajouté(s) — remplace l'URL par ton hébergement`);
 }
 
 function adminSimulateUpdate() {
