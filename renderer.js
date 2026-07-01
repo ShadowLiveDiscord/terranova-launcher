@@ -644,31 +644,22 @@ function simulateAdminUpdate() {
 let currentUser    = null;
 let currentSession = null; // session complète (avec tokens) pour le lancement
 
-// ── Rendu du skin (style Nebula/Helios) ───────────────────────────────────────
-// Pas de service tiers (crafatar...) : on dessine le visage directement depuis
-// la texture officielle Mojang (skin.url renvoyé par l'API Minecraft) via canvas.
-function drawSkinFace(skinUrl, canvas, onSuccess, onError) {
-  if (!skinUrl || !canvas) { onError?.(); return; }
-  const img = new Image();
+// ── Rendu du skin via mc-heads.net (par UUID) ────────────────────────────────
+function drawSkinFace(uuid, canvas, onSuccess, onError) {
+  if (!uuid || !canvas) { onError?.(); return; }
+  const img  = new Image();
+  const size = canvas.width;
   img.onload = () => {
     try {
-      const ctx  = canvas.getContext('2d');
-      const size = canvas.width;
+      const ctx = canvas.getContext('2d');
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, size, size);
-      // Couche de base du visage : pixels (8,8) à (16,16)
-      ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size);
-      // Couche "casque" (overlay) : pixels (40,8) à (48,16), uniquement sur les skins 64x64
-      if (img.naturalHeight >= 64) {
-        ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size);
-      }
+      ctx.drawImage(img, 0, 0, size, size);
       onSuccess?.();
-    } catch (e) {
-      onError?.();
-    }
+    } catch (e) { onError?.(); }
   };
   img.onerror = () => onError?.();
-  img.src = skinUrl;
+  img.src = `https://mc-heads.net/head/${uuid}/${size}`;
 }
 
 function setUser(profile, session = null) {
@@ -683,7 +674,7 @@ function setUser(profile, session = null) {
   if (letterEl)   letterEl.textContent = letter;
   if (usernameEl) usernameEl.textContent = profile.name;
   if (skinCanvas) {
-    drawSkinFace(profile.skin, skinCanvas,
+    drawSkinFace(profile.id, skinCanvas,
       () => { skinCanvas.classList.add('loaded'); if (letterEl) letterEl.style.display = 'none'; },
       () => { skinCanvas.classList.remove('loaded'); if (letterEl) letterEl.style.display = 'flex'; }
     );
@@ -698,7 +689,7 @@ function setUser(profile, session = null) {
   if (accName)   accName.textContent = profile.name;
   if (accType)   accType.textContent = `Compte ${profile.type} · UUID: ${profile.uuid}`;
   if (accCanvas) {
-    drawSkinFace(profile.skin, accCanvas,
+    drawSkinFace(profile.id, accCanvas,
       () => { accCanvas.classList.add('loaded'); if (accLetter) accLetter.style.display = 'none'; },
       () => { accCanvas.classList.remove('loaded'); if (accLetter) accLetter.style.display = 'flex'; }
     );

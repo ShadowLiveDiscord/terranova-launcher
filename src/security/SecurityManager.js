@@ -55,7 +55,7 @@ const CSP = [
   "script-src 'self' 'unsafe-inline'",  // unsafe-inline requis pour le renderer inline
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: https://textures.minecraft.net https://crafatar.com",
+  "img-src 'self' data: https://textures.minecraft.net https://crafatar.com https://mc-heads.net",
   "connect-src 'self' " + [
     'https://login.live.com',
     'https://user.auth.xboxlive.com',
