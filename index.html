@@ -276,7 +276,8 @@
           <div class="itab-content" id="itab-imods">
             <div class="mods-header">
               <span id="mods-enabled-count">11 / 12 mods actifs</span>
-              <button class="btn-add" onclick="addMod()">+ Ajouter un mod</button>
+              <button class="btn-add" onclick="addMod('files')">+ Fichiers JAR</button>
+              <button class="btn-add" onclick="addMod('folder')" style="margin-left:6px">+ Dossier</button>
             </div>
             <div class="mods-list" id="mods-list"></div>
           </div>
@@ -342,7 +343,7 @@
 
       <!-- TAB: MODS -->
       <div class="tab" id="tab-mods">
-        <div class="tab-topbar"><h2>GESTION DES MODS</h2><button class="btn-add" onclick="addMod()">+ Ajouter</button></div>
+        <div class="tab-topbar"><h2>GESTION DES MODS</h2><button class="btn-add" onclick="addMod('files')">+ Fichiers JAR</button><button class="btn-add" onclick="addMod('folder')" style="margin-left:6px">+ Dossier</button></div>
         <div class="mods-list" id="mods-list-global" style="padding:14px 22px;flex:1;overflow-y:auto;"></div>
       </div>
 

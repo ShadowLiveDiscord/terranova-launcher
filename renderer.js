@@ -19,7 +19,7 @@ const ipc = ipcRenderer ? {
   openFolderDialog:  () => ipcRenderer.invoke('dialog:openFolder'),
   pickMods:          () => ipcRenderer.invoke('admin:pickMods'),
   scanMods:          (dir) => ipcRenderer.invoke('mods:scan', dir),
-  addMods:           (dir) => ipcRenderer.invoke('mods:add',  dir),
+  addMods:           (dir, mode) => ipcRenderer.invoke('mods:add', dir, mode),
   toggleMod:         (opts) => ipcRenderer.invoke('mods:toggle', opts),
   getInstanceDir:    () => ipcRenderer.invoke('app:getInstanceDir'),
   getAppVersion:     () => ipcRenderer.invoke('app:getVersion'),
@@ -520,14 +520,14 @@ async function browseFolder() {
 }
 
 // ── Ajouter mod ──
-async function addMod() {
+async function addMod(mode = 'files') {
   if (!ipc?.addMods || !realInstanceDir) {
     showToast('Disponible uniquement dans l\'app Electron');
     return;
   }
-  const res = await ipc.addMods(realInstanceDir);
+  const res = await ipc.addMods(realInstanceDir, mode);
   if (res.canceled || !res.success) return;
-  showToast(`✅ ${res.added.length} mod(s) ajouté(s)`);
+  showToast(`${res.added.length} mod(s) ajouté(s)`);
   await loadRealMods();
 }
 

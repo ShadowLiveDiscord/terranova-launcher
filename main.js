@@ -345,23 +345,24 @@ ipcMain.handle('server:db', async (_, { query, params }) => {
 });
 
 // ── Ajouter des mods (copie vers instanceDir/mods/) ──────────────────────────
-ipcMain.handle('mods:add', async (_, instanceDir) => {
-  const r = await dialog.showOpenDialog(mainWindow, {
-    title: 'Sélectionner des mods ou dossiers à ajouter',
-    filters: [{ name: 'Fichiers mod', extensions: ['jar', 'zip'] }],
-    properties: ['openFile', 'openDirectory', 'multiSelections'],
-  });
-  if (r.canceled || !r.filePaths.length) return { success: false, canceled: true };
-  const modsDir = path.join(instanceDir, 'mods');
-  fs.mkdirSync(modsDir, { recursive: true });
+ipcMain.handle('mods:add', async (_, instanceDir, mode = 'files') => {
   const exts = ['.jar', '.zip'];
   const collectFiles = (p) => {
-    const stat = fs.statSync(p);
-    if (stat.isDirectory()) {
+    if (fs.statSync(p).isDirectory())
       return fs.readdirSync(p).flatMap(f => collectFiles(path.join(p, f)));
-    }
     return exts.some(e => p.endsWith(e)) ? [p] : [];
   };
+
+  const isFolder = mode === 'folder';
+  const r = await dialog.showOpenDialog(mainWindow, {
+    title: isFolder ? 'Sélectionner un dossier de mods' : 'Sélectionner des fichiers mod',
+    ...(!isFolder && { filters: [{ name: 'Fichiers mod', extensions: ['jar', 'zip'] }] }),
+    properties: isFolder ? ['openDirectory', 'multiSelections'] : ['openFile', 'multiSelections'],
+  });
+  if (r.canceled || !r.filePaths.length) return { success: false, canceled: true };
+
+  const modsDir = path.join(instanceDir, 'mods');
+  fs.mkdirSync(modsDir, { recursive: true });
   const added = [];
   for (const src of r.filePaths) {
     for (const file of collectFiles(src)) {
