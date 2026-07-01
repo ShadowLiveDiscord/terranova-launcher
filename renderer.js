@@ -26,6 +26,9 @@ const ipc = ipcRenderer ? {
   // Java / RAM
   detectJava:        () => ipcRenderer.invoke('java:detect'),
   getRamStats:       () => ipcRenderer.invoke('ram:stats'),
+  // Discord RPC
+  discordPlay:       (opts) => ipcRenderer.invoke('discord:play', opts),
+  discordStop:       ()     => ipcRenderer.invoke('discord:stop'),
 } : null;
 
 // ── Titlebar ──
@@ -265,6 +268,17 @@ function updateRam(val) {
   localStorage.setItem('s_ram', val);
 }
 
+// ── Sanitisation JVM args (renderer-side, avant envoi au main process) ────────
+const JVM_BLOCKED = ['-javaagent:', '-agentlib:jdwp', '-agentpath:', '-Djava.security.manager='];
+function sanitizeJvmArgs(raw) {
+  if (!raw) return [];
+  return raw.split(/\s+/).filter(Boolean).filter(arg => {
+    if (/[;&|`$<>]/.test(arg)) return false;
+    if (JVM_BLOCKED.some(b => arg.toLowerCase().startsWith(b.toLowerCase()))) return false;
+    return true;
+  });
+}
+
 // ── Toast ──
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -436,10 +450,14 @@ async function launchGame() {
       overlay.classList.remove('active');
       if (code !== 0 && code !== null) showToast(`Minecraft fermé (code ${code})`);
       if (cancelBtn) cancelBtn.textContent = 'Annuler';
+      ipc.discordStop?.();
     });
 
     bar.style.width = '2%'; pct.textContent = '2%';
     stat.textContent = 'Vérification de NeoForge...';
+
+    // Sanitisation des JVM args (bloque les flags dangereux)
+    const safeJvmArgs = sanitizeJvmArgs(jvmArgs);
 
     const result = await ipc.launch({
       session:     currentSession,
@@ -448,7 +466,7 @@ async function launchGame() {
       loader:      instanceData.instance.loader,
       ramMb,
       javaPath,
-      jvmArgs,
+      jvmArgs:     safeJvmArgs.join(' '),
     });
 
     if (!result.success) {
@@ -462,6 +480,13 @@ async function launchGame() {
     gameRunning = true;
     bar.style.width = '100%'; pct.textContent = '100%';
     stat.textContent = 'Minecraft lancé !';
+
+    // Discord Rich Presence
+    ipc.discordPlay?.({
+      version:    instanceData.instance.version,
+      loader:     instanceData.instance.loader,
+      modsCount:  instanceData.instance.mods.filter(m => m.enabled).length,
+    });
     if (cancelBtn) cancelBtn.textContent = 'Fermer le launcher';
 
     // Fermer le launcher si l'option est activée

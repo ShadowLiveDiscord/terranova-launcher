@@ -1,12 +1,14 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, session } = require('electron');
 const path = require('path');
 const os = require('os');
-const AuthManager    = require('./src/auth/AuthManager');
-const UpdateManager  = require('./src/update/UpdateManager');
-const AppUpdater     = require('./src/update/AppUpdater');
-const LaunchManager  = require('./src/launch/LaunchManager');
+const AuthManager      = require('./src/auth/AuthManager');
+const UpdateManager    = require('./src/update/UpdateManager');
+const AppUpdater       = require('./src/update/AppUpdater');
+const LaunchManager    = require('./src/launch/LaunchManager');
+const DiscordManager   = require('./src/discord/DiscordManager');
+const SecurityManager  = require('./src/security/SecurityManager');
 
 app.commandLine.appendSwitch('disable-features', 'NetworkService');
 app.commandLine.appendSwitch('no-sandbox');
@@ -27,7 +29,6 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
       sandbox: false,
-      webSecurity: false,
     },
     show: false,
   });
@@ -39,11 +40,14 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  SecurityManager.applyCSP(session.defaultSession);
   createWindow();
-  // Vérification auto au démarrage (silencieuse si en dev ou si à jour)
   setTimeout(() => AppUpdater.checkForUpdates(), 3000);
 });
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('window-all-closed', () => {
+  DiscordManager.destroy();
+  if (process.platform !== 'darwin') app.quit();
+});
 
 // ── Titlebar ──────────────────────────────────────────────────────────────────
 ipcMain.on('minimize-window', () => mainWindow?.minimize());
@@ -117,7 +121,14 @@ ipcMain.handle('game:launch', async (event, opts) => {
   );
 });
 
-ipcMain.on('game:kill', () => LaunchManager.killGame());
+ipcMain.on('game:kill', () => {
+  LaunchManager.killGame();
+  DiscordManager.clearActivity();
+});
+
+// ── Discord Rich Presence ─────────────────────────────────────────────────────
+ipcMain.handle('discord:play', (_, opts) => DiscordManager.setPlaying(opts));
+ipcMain.handle('discord:stop', ()       => DiscordManager.clearActivity());
 
 // ── Détection Java ────────────────────────────────────────────────────────────
 ipcMain.handle('java:detect', () => LaunchManager.detectJava());

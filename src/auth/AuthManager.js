@@ -3,6 +3,7 @@
 const { BrowserWindow, session } = require('electron');
 const fetch = require('node-fetch');
 const Store = require('electron-store');
+const { encryptToken, decryptToken } = require('../security/SecurityManager');
 
 // ─── Constantes OAuth Microsoft (MSA live.com flow) ──────────────────────────
 const CLIENT_ID    = '00000000402b5328';
@@ -253,13 +254,36 @@ async function autoLogin() {
   }
 }
 
-// ─── Persistance ─────────────────────────────────────────────────────────────
-function saveSession(session) {
-  store.set('session', session);
+// ─── Persistance (tokens chiffrés via safeStorage / DPAPI) ───────────────────
+function saveSession(sess) {
+  const toStore = {
+    ...sess,
+    tokens: {
+      ...sess.tokens,
+      msRefreshToken: encryptToken(sess.tokens.msRefreshToken),
+      mcAccessToken:  encryptToken(sess.tokens.mcAccessToken),
+    },
+  };
+  store.set('session', toStore);
 }
 
 function loadSession() {
-  return store.get('session', null);
+  const sess = store.get('session', null);
+  if (!sess) return null;
+
+  const msRefreshToken = decryptToken(sess.tokens.msRefreshToken);
+  const mcAccessToken  = decryptToken(sess.tokens.mcAccessToken);
+
+  // Si le déchiffrement échoue (token corrompu / autre machine), force re-login
+  if (!msRefreshToken || !mcAccessToken) {
+    store.delete('session');
+    return null;
+  }
+
+  return {
+    ...sess,
+    tokens: { ...sess.tokens, msRefreshToken, mcAccessToken },
+  };
 }
 
 function clearSession() {
