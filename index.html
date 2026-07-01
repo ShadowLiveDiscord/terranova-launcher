@@ -410,16 +410,22 @@
         <div class="status-row"><span>Mémoire allouée</span><span class="status-val"><span id="status-ram">6144</span> MB</span></div>
       </div>
 
-      <!-- Raccourcis -->
-      <div class="shortcuts-panel">
-        <h3 class="panel-title">RACCOURCIS</h3>
-        <button class="shortcut-btn" onclick="openFolder()"><span>📁</span> Ouvrir le dossier</button>
-        <button class="shortcut-btn" onclick="showTab('instance');showItab('iparams')"><span>⚙</span> Modifier les paramètres</button>
-        <button class="shortcut-btn" onclick="showTab('instance');showItab('imods')"><span>📦</span> Gérer les mods</button>
-        <button class="shortcut-btn" onclick="showTab('saves')"><span>💾</span> Voir les sauvegardes</button>
-        <div class="jvm-section">
-          <span class="jvm-label">JVM Arguments</span>
-          <button class="jvm-link" onclick="showItab('iparams')">Voir les arguments ›</button>
+      <!-- Changelog -->
+      <div class="changelog-panel">
+        <div class="changelog-header">
+          <h3 class="panel-title">CHANGELOG</h3>
+          <span class="changelog-badge" id="changelog-version">v2</span>
+        </div>
+        <div class="changelog-body" id="changelog-body">
+          <div class="changelog-entry">
+            <div class="changelog-dot"></div>
+            <p class="changelog-text" id="changelog-text">Chargement...</p>
+          </div>
+        </div>
+        <div class="changelog-footer">
+          <span class="changelog-local">Version locale : <strong id="changelog-local-ver">—</strong></span>
+          <span class="changelog-sep">·</span>
+          <span class="changelog-remote">Serveur : <strong id="changelog-remote-ver">—</strong></span>
         </div>
       </div>
 

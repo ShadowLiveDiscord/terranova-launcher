@@ -497,6 +497,18 @@ body.has-update .app-layout { top: 64px; }
 .status-val.green { color: var(--green-bright); }
 
 /* SHORTCUTS */
+/* CHANGELOG PANEL */
+.changelog-panel { background: var(--bg3); border: 1px solid var(--border2); border-radius: 5px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.changelog-header { display: flex; align-items: center; justify-content: space-between; }
+.changelog-badge { background: var(--green-bright); color: #000; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; letter-spacing: 1px; }
+.changelog-body { display: flex; flex-direction: column; gap: 6px; }
+.changelog-entry { display: flex; gap: 8px; align-items: flex-start; }
+.changelog-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green-bright); margin-top: 5px; flex-shrink: 0; box-shadow: 0 0 5px var(--green-bright); }
+.changelog-text { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin: 0; }
+.changelog-footer { display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+.changelog-footer strong { color: var(--text); }
+.changelog-sep { color: var(--border2); }
+
 .shortcuts-panel { background: var(--bg3); border: 1px solid var(--border2); border-radius: 5px; padding: 12px 14px; }
 .shortcut-btn {
   width: 100%; display: flex; align-items: center; gap: 9px;

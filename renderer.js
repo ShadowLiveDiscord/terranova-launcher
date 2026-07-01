@@ -99,6 +99,19 @@ function applyInstance() {
   const enabled = i.mods.filter(m => m.enabled).length;
   document.getElementById('status-mods').textContent = `${enabled} / ${i.mods.length}`;
   document.getElementById('mods-enabled-count').textContent = `${enabled} / ${i.mods.length} mods actifs`;
+
+  // Changelog
+  const admin = instanceData.admin;
+  if (admin) {
+    const badge = document.getElementById('changelog-version');
+    const text  = document.getElementById('changelog-text');
+    const local = document.getElementById('changelog-local-ver');
+    const remote = document.getElementById('changelog-remote-ver');
+    if (badge)  badge.textContent  = `v${admin.instance_version}`;
+    if (text)   text.textContent   = admin.changelog || 'Aucun changelog disponible.';
+    if (local)  local.textContent  = `v${admin.local_version || '?'}`;
+    if (remote) remote.textContent = `v${admin.instance_version || '?'}`;
+  }
 }
 
 function renderMods(mods) {
