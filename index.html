@@ -458,13 +458,19 @@
 
       <!-- Bouton JOUER -->
       <div class="play-section">
-        <div class="play-btn-wrap">
+        <div class="play-btn-wrap" style="position:relative">
           <button class="play-btn" onclick="launchGame()">
             <span class="play-icon">▶</span> JOUER
           </button>
-          <button class="play-dropdown">
+          <button class="play-dropdown" onclick="togglePlayMenu(event)">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
+          <div class="play-menu" id="play-menu" style="display:none">
+            <button class="play-menu-item" onclick="closePlayMenu();checkLauncherUpdate()">🔄 Vérifier les MAJ du launcher</button>
+            <button class="play-menu-item" onclick="closePlayMenu();doUpdate()">📦 Forcer la MAJ des mods</button>
+            <button class="play-menu-item" onclick="closePlayMenu();openMinecraftLogs()">📋 Ouvrir les logs Minecraft</button>
+            <button class="play-menu-item" onclick="closePlayMenu();openFolder()">📁 Dossier de l'instance</button>
+          </div>
         </div>
         <button class="folder-btn" onclick="openFolder()">
           <span>📁</span> DOSSIER DE L'INSTANCE

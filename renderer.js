@@ -531,6 +531,19 @@ async function addMod(mode = 'files') {
   await loadRealMods();
 }
 
+// ── Play dropdown ──
+function togglePlayMenu(e) {
+  e.stopPropagation();
+  const m = document.getElementById('play-menu');
+  if (!m) return;
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+function closePlayMenu() {
+  const m = document.getElementById('play-menu');
+  if (m) m.style.display = 'none';
+}
+document.addEventListener('click', () => closePlayMenu());
+
 // ── Menu ••• ──
 function toggleMoreMenu() {
   const m = document.getElementById('more-menu');
