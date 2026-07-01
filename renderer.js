@@ -264,7 +264,7 @@ async function toggleMod(index, enabled) {
   }
 
   if (ipc?.toggleMod && realInstanceDir) {
-    const res = await ipc.toggleMod({ instanceDir: realInstanceDir, filename: mod.filename, enable: enabled });
+    const res = await ipc.toggleMod({ instanceDir: realInstanceDir, filename: mod.filename, relPath: mod.relPath, enable: enabled });
     if (!res.success) { showToast('Erreur : ' + (res.error || 'impossible de déplacer le fichier')); return; }
   }
 
@@ -1269,6 +1269,7 @@ async function loadRealMods() {
     version:  '',
     enabled:  m.enabled,
     filename: m.filename,
+    relPath:  m.relPath,
   }));
   reRenderModsPanel();
 }

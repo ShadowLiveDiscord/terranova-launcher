@@ -215,18 +215,39 @@ ipcMain.handle('mods:scan', async (_, instanceDir) => {
   const disabledDir = path.join(instanceDir, 'mods', 'disabled');
   const result = [];
   const exts   = ['.jar', '.zip'];
-  const scan   = (dir, enabled) => {
+
+  // Scan récursif (exclut le sous-dossier disabled qui est traité séparément)
+  const scan = (dir, enabled) => {
     if (!fs.existsSync(dir)) return;
     for (const f of fs.readdirSync(dir)) {
-      if (exts.some(e => f.endsWith(e))) result.push({ filename: f, enabled });
+      const full = path.join(dir, f);
+      if (fs.statSync(full).isDirectory()) {
+        if (full !== disabledDir) scan(full, enabled);
+      } else if (exts.some(e => f.endsWith(e))) {
+        result.push({
+          filename: f,
+          relPath:  path.relative(modsDir, full).replace(/\\/g, '/'),
+          enabled,
+        });
+      }
     }
   };
+
   scan(modsDir, true);
-  scan(disabledDir, false);
+
+  // Scan du dossier disabled (un seul niveau)
+  if (fs.existsSync(disabledDir)) {
+    for (const f of fs.readdirSync(disabledDir)) {
+      if (exts.some(e => f.endsWith(e))) {
+        result.push({ filename: f, relPath: 'disabled/' + f, enabled: false });
+      }
+    }
+  }
+
   return result;
 });
 
-ipcMain.handle('mods:toggle', async (_, { instanceDir, filename, enable }) => {
+ipcMain.handle('mods:toggle', async (_, { instanceDir, filename, relPath, enable }) => {
   const modsDir     = path.join(instanceDir, 'mods');
   const disabledDir = path.join(instanceDir, 'mods', 'disabled');
   try {
@@ -235,7 +256,8 @@ ipcMain.handle('mods:toggle', async (_, { instanceDir, filename, enable }) => {
       fs.renameSync(path.join(disabledDir, filename), path.join(modsDir, filename));
     } else {
       fs.mkdirSync(disabledDir, { recursive: true });
-      fs.renameSync(path.join(modsDir, filename), path.join(disabledDir, filename));
+      const src = relPath ? path.join(modsDir, relPath) : path.join(modsDir, filename);
+      fs.renameSync(src, path.join(disabledDir, filename));
     }
     return { success: true };
   } catch (e) {
