@@ -15,11 +15,18 @@ async function launchGame(opts, onProgress, onData, onClose) {
   const launcher = new Client();
   activeClient   = launcher;
 
-  // Construction de la version Forge : "1.20.4-forge-47.2.0"
+  // Construction de l'ID de version du mod loader
+  // NeoForge  → "neoforge-21.1.233"         (dossier versions/)
+  // Forge     → "1.21.1-forge-47.2.0"       (dossier versions/)
   let customVersion = null;
   if (loader) {
-    const forgeMatch = loader.match(/forge\s+([\d.]+)/i);
-    if (forgeMatch) customVersion = `${version}-forge-${forgeMatch[1]}`;
+    const neoforgeMatch = loader.match(/neoforge\s+([\d.]+)/i);
+    const forgeMatch    = loader.match(/^forge\s+([\d.]+)/i); // "Forge x.y.z" sans "Neo"
+    if (neoforgeMatch) {
+      customVersion = `neoforge-${neoforgeMatch[1]}`;
+    } else if (forgeMatch) {
+      customVersion = `${version}-forge-${forgeMatch[1]}`;
+    }
   }
 
   const config = {

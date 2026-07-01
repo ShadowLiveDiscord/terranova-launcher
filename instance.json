@@ -1,9 +1,9 @@
 {
   "instance": {
     "name": "Mon Instance",
-    "version": "1.20.4",
-    "loader": "Forge 47.2.0",
-    "java": "17",
+    "version": "1.21.1",
+    "loader": "NeoForge 21.1.233",
+    "java": "21",
     "description": "Ma configuration personnelle avec mes mods préférés pour une expérience survie optimale !",
     "icon": "assets/icons.png",
     "mods_count": 12,
@@ -36,27 +36,27 @@
   "admin": {
     "instance_version": "2",
     "local_version": "1",
-    "changelog": "Ajout de 3 nouveaux mods et mise à jour Forge 47.2.0. BSL Shaders activé par défaut.",
+    "changelog": "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",
     "force_update": false,
     "manifest_url": "https://cdn.terranova.fr/instance.json",
     "files": [
       {
-        "path": "mods/biomes-o-plenty-1.20.4.jar",
-        "url": "https://cdn.terranova.fr/mods/biomes-o-plenty-1.20.4.jar",
+        "path": "mods/biomes-o-plenty-1.21.1.jar",
+        "url": "https://cdn.terranova.fr/mods/biomes-o-plenty-1.21.1.jar",
         "sha256": "placeholder",
         "size": 8234567
       },
       {
-        "path": "mods/optifine-1.20.4-HD-U-I6.jar",
-        "url": "https://cdn.terranova.fr/mods/optifine-1.20.4-HD-U-I6.jar",
-        "sha256": "placeholder",
-        "size": 4120000
-      },
-      {
-        "path": "mods/journeymap-1.20.4.jar",
-        "url": "https://cdn.terranova.fr/mods/journeymap-1.20.4.jar",
+        "path": "mods/journeymap-1.21.1.jar",
+        "url": "https://cdn.terranova.fr/mods/journeymap-1.21.1.jar",
         "sha256": "placeholder",
         "size": 2890000
+      },
+      {
+        "path": "mods/just-enough-items-1.21.1.jar",
+        "url": "https://cdn.terranova.fr/mods/just-enough-items-1.21.1.jar",
+        "sha256": "placeholder",
+        "size": 1540000
       }
     ]
   }
