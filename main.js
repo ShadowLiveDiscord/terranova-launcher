@@ -3,6 +3,7 @@
 const { app, BrowserWindow, ipcMain, shell, dialog, session } = require('electron');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
 const AuthManager      = require('./src/auth/AuthManager');
 const UpdateManager    = require('./src/update/UpdateManager');
 const AppUpdater       = require('./src/update/AppUpdater');
@@ -114,12 +115,24 @@ ipcMain.on('app-update:install', () => AppUpdater.quitAndInstall());
 
 // ── Lancement du jeu (minecraft-launcher-core) ───────────────────────────────
 ipcMain.handle('game:launch', async (event, opts) => {
-  return LaunchManager.launchGame(
+  const result = await LaunchManager.launchGame(
     opts,
     (progress) => mainWindow?.webContents.send('game:progress', progress),
     (data)     => mainWindow?.webContents.send('game:data',     data),
     (code)     => mainWindow?.webContents.send('game:close',    code),
   );
+  if (result.success) {
+    try {
+      const instanceJsonPath = path.join(__dirname, 'instance.json');
+      const raw  = fs.readFileSync(instanceJsonPath, 'utf8');
+      const data = JSON.parse(raw);
+      const now  = new Date();
+      const pad  = (n) => String(n).padStart(2, '0');
+      data.instance.last_launch = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} à ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      fs.writeFileSync(instanceJsonPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch {}
+  }
+  return result;
 });
 
 ipcMain.on('game:kill', () => {
