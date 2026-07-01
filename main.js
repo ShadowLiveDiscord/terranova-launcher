@@ -177,6 +177,40 @@ ipcMain.handle('dialog:openFolder', async () => {
   return { canceled: r.canceled, path: r.filePaths[0] || '' };
 });
 
+// ── Gestion réelle des mods (scan + toggle) ───────────────────────────────────
+ipcMain.handle('mods:scan', async (_, instanceDir) => {
+  const modsDir     = path.join(instanceDir, 'mods');
+  const disabledDir = path.join(instanceDir, 'mods', 'disabled');
+  const result = [];
+  const exts   = ['.jar', '.zip'];
+  const scan   = (dir, enabled) => {
+    if (!fs.existsSync(dir)) return;
+    for (const f of fs.readdirSync(dir)) {
+      if (exts.some(e => f.endsWith(e))) result.push({ filename: f, enabled });
+    }
+  };
+  scan(modsDir, true);
+  scan(disabledDir, false);
+  return result;
+});
+
+ipcMain.handle('mods:toggle', async (_, { instanceDir, filename, enable }) => {
+  const modsDir     = path.join(instanceDir, 'mods');
+  const disabledDir = path.join(instanceDir, 'mods', 'disabled');
+  try {
+    if (enable) {
+      fs.mkdirSync(modsDir, { recursive: true });
+      fs.renameSync(path.join(disabledDir, filename), path.join(modsDir, filename));
+    } else {
+      fs.mkdirSync(disabledDir, { recursive: true });
+      fs.renameSync(path.join(modsDir, filename), path.join(disabledDir, filename));
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 // ── Dialog : sélectionner des JARs + calcul SHA256 (panel admin) ──────────────
 ipcMain.handle('admin:pickMods', async () => {
   const r = await dialog.showOpenDialog(mainWindow, {

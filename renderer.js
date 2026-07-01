@@ -18,6 +18,8 @@ const ipc = ipcRenderer ? {
   openExternal:      (url) => ipcRenderer.invoke('shell:openExternal', url),
   openFolderDialog:  () => ipcRenderer.invoke('dialog:openFolder'),
   pickMods:          () => ipcRenderer.invoke('admin:pickMods'),
+  scanMods:          (dir) => ipcRenderer.invoke('mods:scan', dir),
+  toggleMod:         (opts) => ipcRenderer.invoke('mods:toggle', opts),
   getInstanceDir:    () => ipcRenderer.invoke('app:getInstanceDir'),
   getAppVersion:     () => ipcRenderer.invoke('app:getVersion'),
   // Jeu
@@ -138,12 +140,21 @@ function renderMods(mods) {
   if (el2) el2.innerHTML = html;
 }
 
-function toggleMod(index, enabled) {
-  instanceData.instance.mods[index].enabled = enabled;
-  const total   = instanceData.instance.mods.length;
-  const active  = instanceData.instance.mods.filter(m => m.enabled).length;
-  document.getElementById('status-mods').textContent       = `${active} / ${total}`;
-  document.getElementById('mods-enabled-count').textContent = `${active} / ${total} mods actifs`;
+async function toggleMod(index, enabled) {
+  const mod = instanceData.instance.mods[index];
+  if (!mod) return;
+
+  // Déplacement physique du JAR si on est en Electron avec le vrai instanceDir
+  if (ipc?.toggleMod && realInstanceDir && mod.filename) {
+    const res = await ipc.toggleMod({ instanceDir: realInstanceDir, filename: mod.filename, enable: enabled });
+    if (!res.success) { showToast('Erreur : ' + (res.error || 'impossible de déplacer le fichier')); return; }
+  }
+
+  mod.enabled = enabled;
+  const total  = instanceData.instance.mods.length;
+  const active = instanceData.instance.mods.filter(m => m.enabled).length;
+  document.getElementById('status-mods').textContent        = `${active} / ${total}`;
+  document.getElementById('mods-enabled-count').textContent  = `${active} / ${total} mods actifs`;
 }
 
 // ── Vérification MAJ admin (distante) ──
@@ -605,16 +616,31 @@ async function launchGame() {
       return;
     }
 
+    // ── Étapes visuelles ──
+    const setStep = (step) => {
+      const steps = ['setup', 'assets', 'launch'];
+      steps.forEach((s, i) => {
+        const el   = document.getElementById(`lstep-${s}`);
+        const line = document.getElementById(`lstep-line${i + 1}`);
+        const idx  = steps.indexOf(step);
+        if (!el) return;
+        el.classList.toggle('active', i === idx);
+        el.classList.toggle('done',   i < idx);
+        if (line) line.classList.toggle('done', i < idx);
+      });
+    };
+    setStep('setup');
+
     // Écoute de la progression : installation NeoForge + téléchargement assets
     ipc.onGameProgress((p) => {
       if (p.type === 'setup') {
-        // Phase auto-install NeoForge (0..80%)
+        setStep('setup');
         const v = Math.round((p.pct || 0) * 80);
         bar.style.width = v + '%';
         pct.textContent = v + '%';
         stat.textContent = p.msg || 'Installation...';
       } else if (['download', 'extract', 'assets', 'assets-copy', 'natives', 'classes', 'classes-custom'].includes(p.type)) {
-        // Phase vérification/téléchargement des fichiers Minecraft (80..98%)
+        setStep('assets');
         const v = p.total > 0 ? Math.round((p.task / p.total) * 18) : 0;
         bar.style.width = (80 + v) + '%';
         pct.textContent = (80 + v) + '%';
@@ -656,6 +682,7 @@ async function launchGame() {
 
     // Jeu lancé
     gameRunning = true;
+    setStep('launch');
     bar.style.width = '100%'; pct.textContent = '100%';
     stat.textContent = 'Minecraft lancé !';
 
@@ -1040,6 +1067,43 @@ async function populateJavaSelect() {
   }
 }
 
+// ── Polling MAJ admin (toutes les 5 min) ─────────────────────────────────────
+function startUpdatePolling() {
+  if (!ipc) return;
+  setInterval(async () => {
+    const url = instanceData?.admin?.manifest_url;
+    if (!url) return;
+    try {
+      const res = await ipc.checkUpdate(url);
+      if (!res.success) return;
+      const remoteVer = parseInt(res.manifest?.admin?.instance_version || '0');
+      const localVer  = parseInt(localInstanceVersion || '1');
+      if (remoteVer > localVer) {
+        showToast('🔔 Mise à jour de l\'instance disponible !');
+        // Injecte les données distantes pour que le bouton "Mettre à jour" fonctionne
+        instanceData.admin.instance_version = res.manifest.admin.instance_version;
+        instanceData.admin.changelog        = res.manifest.admin.changelog || '';
+        instanceData.admin.files            = res.manifest.admin.files     || [];
+        instanceData.admin.force_update     = res.manifest.admin.force_update || false;
+        showUpdateBanner(instanceData.admin.changelog, false);
+      }
+    } catch {}
+  }, 5 * 60 * 1000);
+}
+
+// ── Gestion réelle des mods ───────────────────────────────────────────────────
+async function loadRealMods() {
+  if (!ipc?.scanMods || !realInstanceDir) return;
+  const mods = await ipc.scanMods(realInstanceDir);
+  if (!mods.length) return;
+  instanceData.instance.mods = mods.map(m => ({ name: m.filename.replace(/\.jar$/i, ''), version: '', enabled: m.enabled, filename: m.filename }));
+  renderMods(instanceData.instance.mods);
+  const enabled = mods.filter(m => m.enabled).length;
+  document.getElementById('status-mods').textContent       = `${enabled} / ${mods.length}`;
+  document.getElementById('mods-enabled-count').textContent = `${enabled} / ${mods.length} mods actifs`;
+  document.getElementById('mods-count').textContent         = mods.length;
+}
+
 // ── Panel Admin ──────────────────────────────────────────────────────────────
 function adminLoad() {
   if (!instanceData?.admin) return;
@@ -1142,6 +1206,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   loadInstance();
   loadSettings();
   startRamPolling();
+  startUpdatePolling();
 
   if (ipc) {
     // Version dynamique depuis app.getVersion()
@@ -1155,9 +1220,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Résoudre le chemin AppData réel dès le démarrage
     ipc.getInstanceDir().then(dir => {
       realInstanceDir = dir;
-      // Afficher le vrai chemin dans l'interface info
       const el = document.getElementById('info-path');
       if (el) el.textContent = dir;
+      loadRealMods();
     }).catch(() => {});
 
     ipc.onAppUpdateStatus(handleAppUpdateStatus);

@@ -603,6 +603,18 @@ body.has-update .app-layout { top: 64px; }
 .cancel-btn { margin-top: 20px; background: none; border: 1px solid #2a2a2a; color: #444; padding: 7px 18px; font-size: 11px; cursor: pointer; border-radius: 3px; letter-spacing: 1px; transition: all .2s; }
 .cancel-btn:hover { border-color: #555; color: #777; }
 
+/* ── LAUNCH STEPS ── */
+.launch-steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 18px; }
+.launch-step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.launch-step span { font-size: 10px; letter-spacing: 1px; color: #333; transition: color .4s; font-family: 'Rajdhani', sans-serif; font-weight: 600; }
+.launch-step.active span { color: var(--green-bright); }
+.launch-step.done span { color: #3d7a28; }
+.lstep-dot { width: 12px; height: 12px; border-radius: 50%; background: #1a1a1a; border: 2px solid #2a2a2a; transition: all .4s; }
+.launch-step.active .lstep-dot { background: var(--green-bright); border-color: var(--green-bright); box-shadow: 0 0 10px var(--green-bright); }
+.launch-step.done .lstep-dot { background: #3d7a28; border-color: #3d7a28; }
+.lstep-line { width: 60px; height: 2px; background: #1a1a1a; margin-bottom: 18px; transition: background .4s; }
+.lstep-line.done { background: #3d7a28; }
+
 /* ── UPDATE OVERLAY ── */
 .update-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.95);
