@@ -148,6 +148,31 @@ async function ensureForge(instanceDir, mcVersion, forgeVersion, javaPath, onSte
   onStep({ type: 'setup', msg: 'Forge installé !', pct: 0.80 });
 }
 
+// ── JVM args obligatoires du JSON de version custom (NeoForge/Forge modernes) ─
+// minecraft-launcher-core ne lit que arguments.game du JSON de version, jamais
+// arguments.jvm : sans ça, le bootstrap ModLauncher plante (module java.base
+// non ouvert à cpw.mods.securejarhandler).
+function getModernJvmArgs(instanceDir, customVersion) {
+  const versionJsonPath = path.join(instanceDir, 'versions', customVersion, `${customVersion}.json`);
+  if (!fs.existsSync(versionJsonPath)) return [];
+
+  const versionJson = JSON.parse(fs.readFileSync(versionJsonPath, 'utf8'));
+  const jvmArgs = versionJson.arguments?.jvm;
+  if (!Array.isArray(jvmArgs)) return [];
+
+  const separator = process.platform === 'win32' ? ';' : ':';
+  const placeholders = {
+    '${version_name}':        customVersion,
+    '${library_directory}':   path.join(instanceDir, 'libraries'),
+    '${classpath_separator}': separator,
+  };
+  const resolve = (str) => Object.entries(placeholders).reduce(
+    (s, [key, val]) => s.split(key).join(val), str
+  );
+
+  return jvmArgs.filter(a => typeof a === 'string').map(resolve);
+}
+
 // ── Lancement du jeu ──────────────────────────────────────────────────────────
 async function launchGame(opts, onProgress, onData, onClose) {
   const { session, instanceDir, version, loader, ramMb, javaPath, jvmArgs } = opts;
@@ -215,10 +240,11 @@ async function launchGame(opts, onProgress, onData, onClose) {
   };
 
   if (java !== 'java') config.javaPath = java;
-  if (jvmArgs) {
-    const args = jvmArgs.split(/\s+/).filter(Boolean);
-    if (args.length) config.customArgs = args;
-  }
+
+  const modernArgs = customVersion ? getModernJvmArgs(instanceDir, customVersion) : [];
+  const userArgs    = jvmArgs ? jvmArgs.split(/\s+/).filter(Boolean) : [];
+  const customArgs  = modernArgs.concat(userArgs);
+  if (customArgs.length) config.customArgs = customArgs;
 
   launcher.on('progress', (e) => onProgress(e));
   launcher.on('data',     (e) => onData(String(e)));
