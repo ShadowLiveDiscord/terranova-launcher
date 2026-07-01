@@ -364,11 +364,20 @@ ipcMain.handle('mods:add', async (_, instanceDir, mode = 'files') => {
   const modsDir = path.join(instanceDir, 'mods');
   fs.mkdirSync(modsDir, { recursive: true });
   const added = [];
-  for (const src of r.filePaths) {
-    for (const file of collectFiles(src)) {
-      const filename = path.basename(file);
-      fs.copyFileSync(file, path.join(modsDir, filename));
-      added.push(filename);
+
+  if (isFolder) {
+    for (const src of r.filePaths) {
+      const folderName = path.basename(src);
+      fs.cpSync(src, path.join(modsDir, folderName), { recursive: true });
+      added.push(folderName);
+    }
+  } else {
+    for (const src of r.filePaths) {
+      for (const file of collectFiles(src)) {
+        const filename = path.basename(file);
+        fs.copyFileSync(file, path.join(modsDir, filename));
+        added.push(filename);
+      }
     }
   }
   return { success: true, added };
