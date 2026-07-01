@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config({ path: __dirname + '/.env' });
 
 const { app, BrowserWindow, ipcMain, shell, dialog, session } = require('electron');
 const path = require('path');
