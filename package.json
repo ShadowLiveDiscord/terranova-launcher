@@ -33,7 +33,8 @@
             "styles.css",
             "src/**/*",
             "assets/**/*",
-            "instance.json"
+            "instance.json",
+            ".env"
         ],
         "win": {
             "target": "nsis",

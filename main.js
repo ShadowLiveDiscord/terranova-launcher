@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const { app, BrowserWindow, ipcMain, shell, dialog, session } = require('electron');
 const path = require('path');
@@ -342,6 +342,25 @@ ipcMain.handle('server:db', async (_, { query, params }) => {
   } catch (e) {
     return { success: false, error: e.message };
   }
+});
+
+// ── Ajouter des mods (copie vers instanceDir/mods/) ──────────────────────────
+ipcMain.handle('mods:add', async (_, instanceDir) => {
+  const r = await dialog.showOpenDialog(mainWindow, {
+    title: 'Sélectionner des mods à ajouter',
+    filters: [{ name: 'Fichiers mod', extensions: ['jar', 'zip'] }],
+    properties: ['openFile', 'multiSelections'],
+  });
+  if (r.canceled || !r.filePaths.length) return { success: false, canceled: true };
+  const modsDir = path.join(instanceDir, 'mods');
+  fs.mkdirSync(modsDir, { recursive: true });
+  const added = [];
+  for (const src of r.filePaths) {
+    const filename = path.basename(src);
+    fs.copyFileSync(src, path.join(modsDir, filename));
+    added.push(filename);
+  }
+  return { success: true, added };
 });
 
 // ── Dialog : sélectionner des JARs + calcul SHA256 (panel admin) ──────────────

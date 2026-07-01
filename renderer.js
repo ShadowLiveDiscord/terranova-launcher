@@ -19,6 +19,7 @@ const ipc = ipcRenderer ? {
   openFolderDialog:  () => ipcRenderer.invoke('dialog:openFolder'),
   pickMods:          () => ipcRenderer.invoke('admin:pickMods'),
   scanMods:          (dir) => ipcRenderer.invoke('mods:scan', dir),
+  addMods:           (dir) => ipcRenderer.invoke('mods:add',  dir),
   toggleMod:         (opts) => ipcRenderer.invoke('mods:toggle', opts),
   getInstanceDir:    () => ipcRenderer.invoke('app:getInstanceDir'),
   getAppVersion:     () => ipcRenderer.invoke('app:getVersion'),
@@ -519,8 +520,15 @@ async function browseFolder() {
 }
 
 // ── Ajouter mod ──
-function addMod() {
-  showToast('Glisser-déposer un .jar disponible dans l\'app Electron');
+async function addMod() {
+  if (!ipc?.addMods || !realInstanceDir) {
+    showToast('Disponible uniquement dans l\'app Electron');
+    return;
+  }
+  const res = await ipc.addMods(realInstanceDir);
+  if (res.canceled || !res.success) return;
+  showToast(`✅ ${res.added.length} mod(s) ajouté(s)`);
+  await loadRealMods();
 }
 
 // ── Menu ••• ──
