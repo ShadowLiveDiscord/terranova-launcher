@@ -245,6 +245,10 @@
               <div class="settings-section">
                 <h3>Performance</h3>
                 <div class="setting-row">
+                  <label>Version Java</label>
+                  <select class="select-input" id="java-select"><option value="java">Détection en cours...</option></select>
+                </div>
+                <div class="setting-row">
                   <label>Mémoire RAM allouée</label>
                   <div class="slider-row">
                     <input type="range" min="1024" max="16384" step="512" value="6144" id="ram-slider" oninput="updateRam(this.value)">
@@ -312,7 +316,7 @@
             <div class="mem-bar-wrap">
               <div class="mem-bar-fill" style="width: 35%"></div>
             </div>
-            <span class="mem-text">2.1 GB / 6 GB &nbsp; <strong>35%</strong></span>
+            <span class="mem-text" id="mem-text">2.1 GB / 6 GB &nbsp; <strong>35%</strong></span>
           </div>
         </div>
 
@@ -442,7 +446,7 @@
         <div class="mc-progress-fill" id="progress-bar"></div>
         <span class="mc-progress-label" id="progress-pct">0%</span>
       </div>
-      <button class="cancel-btn" onclick="cancelLaunch()">Annuler</button>
+      <button class="cancel-btn" id="launch-cancel-btn" onclick="cancelLaunch()">Annuler</button>
     </div>
   </div>
 

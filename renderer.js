@@ -4,19 +4,28 @@ const path = typeof require !== 'undefined' ? require('path') : null;
 
 // ipcRenderer.invoke disponible uniquement dans Electron
 const ipc = ipcRenderer ? {
-  autoLogin:        () => ipcRenderer.invoke('auth:autoLogin'),
-  login:            () => ipcRenderer.invoke('auth:login'),
-  logout:           () => ipcRenderer.invoke('auth:logout'),
-  checkUpdate:      (url) => ipcRenderer.invoke('update:check', { url }),
-  startUpdate:      (instanceDir, files) => ipcRenderer.invoke('update:start', { instanceDir, files }),
-  onProgress:       (cb) => ipcRenderer.on('update:progress', (_, data) => cb(data)),
-  checkAppUpdate:   () => ipcRenderer.invoke('app-update:check'),
+  autoLogin:         () => ipcRenderer.invoke('auth:autoLogin'),
+  login:             () => ipcRenderer.invoke('auth:login'),
+  logout:            () => ipcRenderer.invoke('auth:logout'),
+  checkUpdate:       (url) => ipcRenderer.invoke('update:check', { url }),
+  startUpdate:       (instanceDir, files) => ipcRenderer.invoke('update:start', { instanceDir, files }),
+  onProgress:        (cb) => ipcRenderer.on('update:progress', (_, data) => cb(data)),
+  checkAppUpdate:    () => ipcRenderer.invoke('app-update:check'),
   downloadAppUpdate: () => ipcRenderer.invoke('app-update:download'),
   installAppUpdate:  () => ipcRenderer.send('app-update:install'),
   onAppUpdateStatus: (cb) => ipcRenderer.on('app-update:status', (_, data) => cb(data)),
-  openPath:         (p) => ipcRenderer.invoke('shell:openPath', p),
-  openExternal:     (url) => ipcRenderer.invoke('shell:openExternal', url),
-  openFolderDialog: () => ipcRenderer.invoke('dialog:openFolder'),
+  openPath:          (p) => ipcRenderer.invoke('shell:openPath', p),
+  openExternal:      (url) => ipcRenderer.invoke('shell:openExternal', url),
+  openFolderDialog:  () => ipcRenderer.invoke('dialog:openFolder'),
+  // Jeu
+  launch:            (opts) => ipcRenderer.invoke('game:launch', opts),
+  killGame:          () => ipcRenderer.send('game:kill'),
+  onGameProgress:    (cb) => ipcRenderer.on('game:progress', (_, d) => cb(d)),
+  onGameData:        (cb) => ipcRenderer.on('game:data',     (_, d) => cb(d)),
+  onGameClose:       (cb) => ipcRenderer.on('game:close',    (_, code) => cb(code)),
+  // Java / RAM
+  detectJava:        () => ipcRenderer.invoke('java:detect'),
+  getRamStats:       () => ipcRenderer.invoke('ram:stats'),
 } : null;
 
 // ── Titlebar ──
@@ -218,6 +227,7 @@ function finishUpdate() {
 
 // ── Navigation principale ──
 function showTab(name) {
+  if (name === 'settings') populateJavaSelect();
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   const tab = document.getElementById('tab-' + name);
@@ -375,13 +385,93 @@ function loadSettings() {
 
 // ── Lancement ──
 let launchInterval = null;
+let gameRunning    = false;
 
-function launchGame() {
+async function launchGame() {
+  if (gameRunning) return;
+
   const overlay = document.getElementById('launch-overlay');
+  const bar     = document.getElementById('progress-bar');
+  const stat    = document.getElementById('launch-status-text');
+  const pct     = document.getElementById('progress-pct');
+  const cancelBtn = document.getElementById('launch-cancel-btn');
+
   overlay.classList.add('active');
-  const bar  = document.getElementById('progress-bar');
-  const stat = document.getElementById('launch-status-text');
-  const pct  = document.getElementById('progress-pct');
+  bar.style.width = '0%'; pct.textContent = '0%';
+  stat.textContent = 'Initialisation...';
+  if (cancelBtn) cancelBtn.textContent = 'Annuler';
+
+  // Mode Electron : vrai lancement
+  if (ipc && currentSession) {
+    const ramMb     = parseInt(localStorage.getItem('s_ram'))     || instanceData?.instance?.ram_mb || 4096;
+    const jvmArgs   = localStorage.getItem('s_jvm')               || '';
+    const javaPath  = localStorage.getItem('s_java_path')         || 'java';
+    const instanceDir = instanceData?.instance?.path || '';
+
+    if (!instanceDir) {
+      stat.textContent = 'Erreur : chemin de l\'instance non configuré';
+      setTimeout(() => overlay.classList.remove('active'), 2500);
+      return;
+    }
+
+    // Écoute de la progression du téléchargement des assets
+    ipc.onGameProgress((p) => {
+      if (p.type === 'download' || p.type === 'extract') {
+        const v = p.total > 0 ? Math.round((p.task / p.total) * 70) : 0;
+        bar.style.width = (5 + v) + '%';
+        pct.textContent = (5 + v) + '%';
+        stat.textContent = `${p.type === 'extract' ? 'Extraction' : 'Téléchargement'} : ${p.task} / ${p.total}`;
+      }
+    });
+
+    ipc.onGameClose((code) => {
+      gameRunning = false;
+      overlay.classList.remove('active');
+      if (code !== 0 && code !== null) showToast(`Minecraft fermé (code ${code})`);
+      if (cancelBtn) cancelBtn.textContent = 'Annuler';
+    });
+
+    bar.style.width = '5%'; pct.textContent = '5%';
+    stat.textContent = 'Démarrage de Minecraft...';
+
+    const result = await ipc.launch({
+      session:     currentSession,
+      instanceDir,
+      version:     instanceData.instance.version,
+      loader:      instanceData.instance.loader,
+      ramMb,
+      javaPath,
+      jvmArgs,
+    });
+
+    if (!result.success) {
+      gameRunning = false;
+      overlay.classList.remove('active');
+      showToast('Erreur lancement : ' + result.error);
+      return;
+    }
+
+    // Jeu lancé
+    gameRunning = true;
+    bar.style.width = '100%'; pct.textContent = '100%';
+    stat.textContent = 'Minecraft lancé !';
+    if (cancelBtn) cancelBtn.textContent = 'Fermer le launcher';
+
+    // Fermer le launcher si l'option est activée
+    const closeOnLaunch = localStorage.getItem('s_close_on_launch');
+    if (closeOnLaunch !== '0') {
+      setTimeout(() => ipcRenderer?.send('minimize-window'), 1500);
+    }
+    return;
+  }
+
+  // Mode preview : simulation
+  if (!ipc && !currentSession) {
+    stat.textContent = 'Connexion requise pour lancer le jeu';
+    setTimeout(() => overlay.classList.remove('active'), 2000);
+    return;
+  }
+
   const steps = [
     { p: 10, msg: 'Vérification des fichiers...' },
     { p: 25, msg: 'Chargement des mods...' },
@@ -392,7 +482,6 @@ function launchGame() {
     { p: 100, msg: 'Prêt !' },
   ];
   let step = 0;
-  bar.style.width = '0%'; pct.textContent = '0%'; stat.textContent = 'Initialisation...';
   launchInterval = setInterval(() => {
     if (step >= steps.length) {
       clearInterval(launchInterval);
@@ -403,10 +492,13 @@ function launchGame() {
     bar.style.width = s.p + '%'; pct.textContent = s.p + '%'; stat.textContent = s.msg;
     step++;
   }, 600);
-  ipcRenderer?.send('launch-game', {});
 }
 
 function cancelLaunch() {
+  if (gameRunning && ipc) {
+    ipc.killGame();
+    gameRunning = false;
+  }
   clearInterval(launchInterval);
   document.getElementById('launch-overlay').classList.remove('active');
 }
@@ -492,7 +584,8 @@ function simulateAdminUpdate() {
 }
 
 // ── Session utilisateur ──
-let currentUser = null;
+let currentUser    = null;
+let currentSession = null; // session complète (avec tokens) pour le lancement
 
 // ── Rendu du skin (style Nebula/Helios) ───────────────────────────────────────
 // Pas de service tiers (crafatar...) : on dessine le visage directement depuis
@@ -521,8 +614,9 @@ function drawSkinFace(skinUrl, canvas, onSuccess, onError) {
   img.src = skinUrl;
 }
 
-function setUser(profile) {
-  currentUser = profile;
+function setUser(profile, session = null) {
+  currentUser    = profile;
+  if (session) currentSession = session;
   const letter = profile.name.charAt(0).toUpperCase();
 
   // Sidebar : lettre par défaut + skin par-dessus
@@ -604,7 +698,7 @@ async function doMicrosoftLogin() {
         type: 'Premium',
         uuid: 'a4f2c1b3-d5e6...',
         skin: 'https://assets.mojang.com/SkinTemplates/steve.png',
-      });
+      }, null);
       setTimeout(transitionToLauncher, 500);
     }, 3800);
     return;
@@ -626,7 +720,7 @@ async function doMicrosoftLogin() {
       type: 'Premium',
       uuid: result.session.profile.id,
       skin: result.session.profile.skin,
-    });
+    }, result.session);
     setTimeout(transitionToLauncher, 500);
 
   } catch (e) {
@@ -652,10 +746,74 @@ function transitionToLauncher() {
   setTimeout(() => screen.classList.add('hidden'), 500);
 }
 
+// ── RAM live ──────────────────────────────────────────────────────────────────
+function startRamPolling() {
+  function updateRamDisplay() {
+    if (ipc) {
+      ipc.getRamStats().then(({ total, free }) => {
+        const used    = total - free;
+        const usedGb  = (used  / 1073741824).toFixed(1);
+        const totalGb = (total / 1073741824).toFixed(1);
+        const pct     = Math.round(used / total * 100);
+        const el = document.getElementById('mem-text');
+        if (el) el.innerHTML = `${usedGb} GB / ${totalGb} GB &nbsp; <strong>${pct}%</strong>`;
+        const bar = document.querySelector('.mem-bar-fill');
+        if (bar) bar.style.width = pct + '%';
+      }).catch(() => {});
+    } else if (typeof require !== 'undefined') {
+      // Preview / dev avec nodeIntegration
+      try {
+        const os  = require('os');
+        const total = os.totalmem();
+        const free  = os.freemem();
+        const used  = total - free;
+        const usedGb  = (used  / 1073741824).toFixed(1);
+        const totalGb = (total / 1073741824).toFixed(1);
+        const pct     = Math.round(used / total * 100);
+        const el = document.getElementById('mem-text');
+        if (el) el.innerHTML = `${usedGb} GB / ${totalGb} GB &nbsp; <strong>${pct}%</strong>`;
+        const bar = document.querySelector('.mem-bar-fill');
+        if (bar) bar.style.width = pct + '%';
+      } catch {}
+    }
+  }
+  updateRamDisplay();
+  setInterval(updateRamDisplay, 3000);
+}
+
+// ── Détection Java ────────────────────────────────────────────────────────────
+async function populateJavaSelect() {
+  const select = document.getElementById('java-select');
+  if (!select) return;
+
+  if (ipc) {
+    const javas = await ipc.detectJava();
+    select.innerHTML = '';
+    if (javas.length === 0) {
+      select.innerHTML = '<option value="java">java (PATH système)</option>';
+    } else {
+      javas.forEach(j => {
+        const opt = document.createElement('option');
+        opt.value = j.path;
+        opt.textContent = j.label;
+        if (j.path === (localStorage.getItem('s_java_path') || 'java')) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+    select.onchange = () => {
+      localStorage.setItem('s_java_path', select.value);
+      showToast('Java sélectionné : ' + select.options[select.selectedIndex].text);
+    };
+  } else {
+    select.innerHTML = '<option value="java">java (détection disponible en app)</option>';
+  }
+}
+
 // ── Init ──
 window.addEventListener('DOMContentLoaded', async () => {
   loadInstance();
   loadSettings();
+  startRamPolling();
 
   if (ipc) {
     ipc.onAppUpdateStatus(handleAppUpdateStatus);
@@ -674,7 +832,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         type: 'Premium',
         uuid: result.session.profile.id,
         skin: result.session.profile.skin,
-      });
+      }, result.session);
       transitionToLauncher();
     } else {
       // Pas de session → afficher le login normalement

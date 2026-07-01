@@ -2,9 +2,11 @@
 
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
-const AuthManager   = require('./src/auth/AuthManager');
-const UpdateManager = require('./src/update/UpdateManager');
-const AppUpdater    = require('./src/update/AppUpdater');
+const os = require('os');
+const AuthManager    = require('./src/auth/AuthManager');
+const UpdateManager  = require('./src/update/UpdateManager');
+const AppUpdater     = require('./src/update/AppUpdater');
+const LaunchManager  = require('./src/launch/LaunchManager');
 
 app.commandLine.appendSwitch('disable-features', 'NetworkService');
 app.commandLine.appendSwitch('no-sandbox');
@@ -105,10 +107,26 @@ ipcMain.handle('app-update:check',   () => AppUpdater.checkForUpdates());
 ipcMain.handle('app-update:download', () => AppUpdater.downloadUpdate());
 ipcMain.on('app-update:install', () => AppUpdater.quitAndInstall());
 
-// ── Lancement du jeu ─────────────────────────────────────────────────────────
-ipcMain.on('launch-game', (event, opts) => {
-  console.log('Lancement demandé :', opts);
+// ── Lancement du jeu (minecraft-launcher-core) ───────────────────────────────
+ipcMain.handle('game:launch', async (event, opts) => {
+  return LaunchManager.launchGame(
+    opts,
+    (progress) => mainWindow?.webContents.send('game:progress', progress),
+    (data)     => mainWindow?.webContents.send('game:data',     data),
+    (code)     => mainWindow?.webContents.send('game:close',    code),
+  );
 });
+
+ipcMain.on('game:kill', () => LaunchManager.killGame());
+
+// ── Détection Java ────────────────────────────────────────────────────────────
+ipcMain.handle('java:detect', () => LaunchManager.detectJava());
+
+// ── RAM système ───────────────────────────────────────────────────────────────
+ipcMain.handle('ram:stats', () => ({
+  total: os.totalmem(),
+  free:  os.freemem(),
+}));
 
 // ── Shell : ouvrir un dossier / lien externe ──────────────────────────────────
 ipcMain.handle('shell:openPath', async (_, p) => {
