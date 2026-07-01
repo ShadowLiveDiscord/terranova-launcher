@@ -1,6 +1,6 @@
 {
     "name":  "terranova-launcher",
-    "version": "1.2.5",
+    "version": "1.2.6",
     "description":  "TerraNova Minecraft Launcher",
     "main":  "main.js",
     "scripts":  {
