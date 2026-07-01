@@ -129,19 +129,20 @@ function applyInstance() {
 
 function renderMods(mods) {
   const icons = ['🌿','⚡','🗺','🏗','🎒','🔮','🚀','🍖','🦁','⚔','⚙','💎'];
-  const html = mods.map((m, i) => `
+  const empty = '<div class="placeholder-tab"><span>📦</span><p>Aucun mod installé.<br>Utilise les boutons <strong>+ Fichiers JAR</strong> ou <strong>+ Dossier</strong> pour en ajouter.</p></div>';
+  const html = mods.length ? mods.map((m, i) => `
     <div class="mod-item ${m.enabled ? 'active' : ''}">
       <div class="mod-icon">${icons[i % icons.length]}</div>
       <div class="mod-info">
         <span class="mod-name">${m.name}</span>
-        <span class="mod-version">${m.version}</span>
+        ${m.version ? `<span class="mod-version">${m.version}</span>` : ''}
       </div>
       <label class="toggle">
         <input type="checkbox" ${m.enabled ? 'checked' : ''} onchange="toggleMod(${i}, this.checked)">
         <span class="toggle-slider"></span>
       </label>
     </div>
-  `).join('');
+  `).join('') : empty;
   const el = document.getElementById('mods-list');
   const el2 = document.getElementById('mods-list-global');
   if (el)  el.innerHTML  = html;
@@ -152,8 +153,12 @@ async function toggleMod(index, enabled) {
   const mod = instanceData.instance.mods[index];
   if (!mod) return;
 
-  // Déplacement physique du JAR si on est en Electron avec le vrai instanceDir
-  if (ipc?.toggleMod && realInstanceDir && mod.filename) {
+  if (!mod.filename) {
+    showToast('Ce mod ne peut pas être activé/désactivé (pas de fichier associé)');
+    return;
+  }
+
+  if (ipc?.toggleMod && realInstanceDir) {
     const res = await ipc.toggleMod({ instanceDir: realInstanceDir, filename: mod.filename, enable: enabled });
     if (!res.success) { showToast('Erreur : ' + (res.error || 'impossible de déplacer le fichier')); return; }
   }
@@ -161,8 +166,10 @@ async function toggleMod(index, enabled) {
   mod.enabled = enabled;
   const total  = instanceData.instance.mods.length;
   const active = instanceData.instance.mods.filter(m => m.enabled).length;
-  document.getElementById('status-mods').textContent        = `${active} / ${total}`;
-  document.getElementById('mods-enabled-count').textContent  = `${active} / ${total} mods actifs`;
+  const statusEl  = document.getElementById('status-mods');
+  const enabledEl = document.getElementById('mods-enabled-count');
+  if (statusEl)  statusEl.textContent  = `${active} / ${total}`;
+  if (enabledEl) enabledEl.textContent = `${active} / ${total} mods actifs`;
 }
 
 // ── Vérification MAJ admin (distante) ──
@@ -1124,13 +1131,21 @@ function startUpdatePolling() {
 async function loadRealMods() {
   if (!ipc?.scanMods || !realInstanceDir) return;
   const mods = await ipc.scanMods(realInstanceDir);
-  if (!mods.length) return;
-  instanceData.instance.mods = mods.map(m => ({ name: m.filename.replace(/\.jar$/i, ''), version: '', enabled: m.enabled, filename: m.filename }));
+  instanceData.instance.mods = mods.map(m => ({
+    name:     m.filename.replace(/\.(jar|zip)$/i, ''),
+    version:  '',
+    enabled:  m.enabled,
+    filename: m.filename,
+  }));
   renderMods(instanceData.instance.mods);
+  const total   = mods.length;
   const enabled = mods.filter(m => m.enabled).length;
-  document.getElementById('status-mods').textContent       = `${enabled} / ${mods.length}`;
-  document.getElementById('mods-enabled-count').textContent = `${enabled} / ${mods.length} mods actifs`;
-  document.getElementById('mods-count').textContent         = mods.length;
+  const modsCountEl = document.getElementById('mods-count');
+  const statusEl    = document.getElementById('status-mods');
+  const enabledEl   = document.getElementById('mods-enabled-count');
+  if (modsCountEl) modsCountEl.textContent = total;
+  if (statusEl)    statusEl.textContent    = `${enabled} / ${total}`;
+  if (enabledEl)   enabledEl.textContent   = `${enabled} / ${total} mods actifs`;
 }
 
 // ── Crash reporter ────────────────────────────────────────────────────────────
