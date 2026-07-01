@@ -561,12 +561,13 @@ async function launchGame() {
         bar.style.width = v + '%';
         pct.textContent = v + '%';
         stat.textContent = p.msg || 'Installation...';
-      } else if (p.type === 'download' || p.type === 'extract') {
-        // Phase téléchargement assets Minecraft (80..98%)
+      } else if (['download', 'extract', 'assets', 'assets-copy', 'natives', 'classes', 'classes-custom'].includes(p.type)) {
+        // Phase vérification/téléchargement des fichiers Minecraft (80..98%)
         const v = p.total > 0 ? Math.round((p.task / p.total) * 18) : 0;
         bar.style.width = (80 + v) + '%';
         pct.textContent = (80 + v) + '%';
-        stat.textContent = `${p.type === 'extract' ? 'Extraction' : 'Téléchargement'} : ${p.task} / ${p.total}`;
+        const labels = { extract: 'Extraction', assets: 'Vérification des assets', 'assets-copy': 'Copie des assets', natives: 'Extraction des natives', classes: 'Vérification des bibliothèques', 'classes-custom': 'Vérification des bibliothèques' };
+        stat.textContent = `${labels[p.type] || 'Téléchargement'} : ${p.task} / ${p.total}`;
       }
     });
 
