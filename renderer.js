@@ -875,8 +875,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (ipc) {
     // Version dynamique depuis app.getVersion()
     ipc.getAppVersion().then(v => {
-      const el = document.getElementById('sidebar-version');
-      if (el) el.textContent = 'Launcher v' + v;
+      const sidebar = document.getElementById('sidebar-version');
+      if (sidebar) sidebar.textContent = 'Launcher v' + v;
+      const status = document.getElementById('launcher-version-status');
+      if (status) status.innerHTML = '<span class="dot-online"></span> Launcher à jour (v' + v + ')';
     }).catch(() => {});
 
     // Résoudre le chemin AppData réel dès le démarrage

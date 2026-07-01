@@ -4,14 +4,14 @@
                      "version":  "1.21.1",
                      "loader":  "NeoForge 21.1.233",
                      "java":  "21",
-                     "description":  "Ma configuration personnelle avec mes mods prÃƒÆ’Ã‚Â©fÃƒÆ’Ã‚Â©rÃƒÆ’Ã‚Â©s pour une expÃƒÆ’Ã‚Â©rience survie optimale !",
+                     "description":  "Ma configuration personnelle avec mes mods prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s pour une expÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rience survie optimale !",
                      "icon":  "assets/icons.png",
                      "mods_count":  12,
                      "resource_packs":  3,
                      "shaders":  "BSL v8.2",
                      "ram_mb":  6144,
                      "path":  "C:\\TerraNova\\instances\\terranova",
-                     "last_launch":  "Aujourd\u0027hui ÃƒÆ’Ã‚Â  14:35",
+                     "last_launch":  "Aujourd\u0027hui ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  14:35",
                      "playtime":  "12h 47m",
                      "mods":  [
                                   {
@@ -77,7 +77,7 @@
                               ]
                  },
     "launcher":  {
-                     "version": "1.2.2",
+                     "version": "1.2.3",
                      "latest_version":  "1.2.0",
                      "update_url":  ""
                  },
