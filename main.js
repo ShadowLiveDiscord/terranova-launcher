@@ -128,8 +128,10 @@ ipcMain.handle('game:launch', async (event, opts) => {
       const data = JSON.parse(raw);
       const now  = new Date();
       const pad  = (n) => String(n).padStart(2, '0');
-      data.instance.last_launch = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} à ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const timestamp = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} à ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      data.instance.last_launch = timestamp;
       fs.writeFileSync(instanceJsonPath, JSON.stringify(data, null, 2), 'utf8');
+      mainWindow?.webContents.send('game:launched', { last_launch: timestamp });
     } catch {}
   }
   return result;

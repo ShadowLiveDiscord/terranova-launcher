@@ -25,6 +25,7 @@ const ipc = ipcRenderer ? {
   onGameProgress:    (cb) => ipcRenderer.on('game:progress', (_, d) => cb(d)),
   onGameData:        (cb) => ipcRenderer.on('game:data',     (_, d) => cb(d)),
   onGameClose:       (cb) => ipcRenderer.on('game:close',    (_, code) => cb(code)),
+  onGameLaunched:    (cb) => ipcRenderer.on('game:launched', (_, data) => cb(data)),
   // Java / RAM
   detectJava:        () => ipcRenderer.invoke('java:detect'),
   getRamStats:       () => ipcRenderer.invoke('ram:stats'),
@@ -1012,6 +1013,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     }).catch(() => {});
 
     ipc.onAppUpdateStatus(handleAppUpdateStatus);
+
+    ipc.onGameLaunched((data) => {
+      if (data?.last_launch) {
+        if (instanceData?.instance) instanceData.instance.last_launch = data.last_launch;
+        const el = document.getElementById('info-last');
+        if (el) el.textContent = data.last_launch;
+      }
+    });
 
     // Electron : tentative d'auto-login avec session sauvegardée
     const loading     = document.getElementById('login-loading');
