@@ -468,10 +468,7 @@ function handleAppUpdateStatus(data) {
 
     case 'error':
       appUpdateState = 'idle';
-      title.textContent = 'Erreur de mise à jour';
-      sub.textContent   = data.error || 'Une erreur est survenue.';
-      btn.style.display  = 'none';
-      showAppUpdateBanner();
+      // Pas de bannière : l'erreur est silencieuse (pas de release publiée = normal)
       break;
 
     // 'checking' / 'not-available' : pas de bannière, rien à faire
