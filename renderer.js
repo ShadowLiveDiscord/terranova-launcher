@@ -644,22 +644,32 @@ function simulateAdminUpdate() {
 let currentUser    = null;
 let currentSession = null; // session complète (avec tokens) pour le lancement
 
-// ── Rendu du skin via mc-heads.net (par UUID) ────────────────────────────────
-function drawSkinFace(uuid, canvas, onSuccess, onError) {
-  if (!uuid || !canvas) { onError?.(); return; }
-  const img  = new Image();
-  const size = canvas.width;
-  img.onload = () => {
-    try {
-      const ctx = canvas.getContext('2d');
-      ctx.imageSmoothingEnabled = false;
-      ctx.clearRect(0, 0, size, size);
-      ctx.drawImage(img, 0, 0, size, size);
-      onSuccess?.();
-    } catch (e) { onError?.(); }
-  };
-  img.onerror = () => onError?.();
-  img.src = `https://mc-heads.net/head/${uuid}/${size}`;
+// ── Rendu du skin (approche Nebula) ──────────────────────────────────────────
+// node-fetch télécharge la texture côté Node.js → pas de CORS/CSP browser.
+// Conversion en base64 data URL puis dessin sur canvas.
+const nodeFetch = typeof require !== 'undefined' ? require('node-fetch') : null;
+
+async function drawSkinFace(skinUrl, canvas, onSuccess, onError) {
+  if (!skinUrl || !canvas) { onError?.(); return; }
+  try {
+    const res    = await nodeFetch(skinUrl);
+    const buf    = await res.buffer();
+    const data   = `data:image/png;base64,${buf.toString('base64')}`;
+    const img    = new Image();
+    img.onload = () => {
+      try {
+        const ctx  = canvas.getContext('2d');
+        const size = canvas.width;
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size);
+        if (img.naturalHeight >= 64) ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size);
+        onSuccess?.();
+      } catch { onError?.(); }
+    };
+    img.onerror = () => onError?.();
+    img.src = data;
+  } catch { onError?.(); }
 }
 
 function setUser(profile, session = null) {
@@ -674,7 +684,7 @@ function setUser(profile, session = null) {
   if (letterEl)   letterEl.textContent = letter;
   if (usernameEl) usernameEl.textContent = profile.name;
   if (skinCanvas) {
-    drawSkinFace(profile.id, skinCanvas,
+    drawSkinFace(profile.skin, skinCanvas,
       () => { skinCanvas.classList.add('loaded'); if (letterEl) letterEl.style.display = 'none'; },
       () => { skinCanvas.classList.remove('loaded'); if (letterEl) letterEl.style.display = 'flex'; }
     );
@@ -689,7 +699,7 @@ function setUser(profile, session = null) {
   if (accName)   accName.textContent = profile.name;
   if (accType)   accType.textContent = `Compte ${profile.type} · UUID: ${profile.uuid}`;
   if (accCanvas) {
-    drawSkinFace(profile.id, accCanvas,
+    drawSkinFace(profile.skin, accCanvas,
       () => { accCanvas.classList.add('loaded'); if (accLetter) accLetter.style.display = 'none'; },
       () => { accCanvas.classList.remove('loaded'); if (accLetter) accLetter.style.display = 'flex'; }
     );
