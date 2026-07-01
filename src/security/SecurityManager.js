@@ -72,6 +72,12 @@ const CSP = [
 
 function applyCSP(session) {
   session.webRequest.onHeadersReceived((details, callback) => {
+    // Appliquer la CSP seulement aux pages locales du launcher (file://)
+    // Ne pas toucher aux pages externes (Microsoft OAuth, Xbox, etc.)
+    if (!details.url.startsWith('file://')) {
+      callback({ responseHeaders: details.responseHeaders });
+      return;
+    }
     callback({
       responseHeaders: {
         ...details.responseHeaders,
