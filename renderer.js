@@ -1509,6 +1509,10 @@ function adminBuildData() {
 function adminSave() {
   if (!fs || !path) { showToast('Disponible uniquement dans l\'app Electron'); return; }
 
+  // En app packagée, __dirname est à l'intérieur du .asar (lecture seule).
+  // On écrit à côté du .asar, dans process.resourcesPath.
+  const writableDir = __dirname.includes('app.asar') ? process.resourcesPath : __dirname;
+
   if (distributionData?.servers?.length) {
     const server = distributionData.servers[0];
     const el = (id) => document.getElementById(id);
@@ -1530,7 +1534,7 @@ function adminSave() {
       };
     });
 
-    const jsonPath = path.join(__dirname, 'distribution.json');
+    const jsonPath = path.join(writableDir, 'distribution.json');
     try {
       fs.writeFileSync(jsonPath, JSON.stringify(distributionData, null, 2), 'utf8');
       distributionModules = server.modules;
@@ -1543,14 +1547,14 @@ function adminSave() {
       if (remote2) remote2.textContent = `v${server.instanceVersion}`;
       showToast('✅ distribution.json sauvegardé — pousse sur GitHub pour déployer');
     } catch (e) {
-      showToast('Erreur : ' + e.message);
+      showToast('Erreur écriture : ' + e.message);
     }
     return;
   }
 
   const newAdmin = adminBuildData();
   instanceData.admin = newAdmin;
-  const jsonPath = path.join(__dirname, 'instance.json');
+  const jsonPath = path.join(writableDir, 'instance.json');
   try {
     fs.writeFileSync(jsonPath, JSON.stringify(instanceData, null, 2), 'utf8');
     const badge  = document.getElementById('changelog-version');
@@ -1563,7 +1567,7 @@ function adminSave() {
     if (local2) local2.textContent = `v${newAdmin.local_version}`;
     showToast('✅ instance.json sauvegardé — pousse sur GitHub pour déployer');
   } catch (e) {
-    showToast('Erreur : ' + e.message);
+    showToast('Erreur écriture : ' + e.message);
   }
 }
 
