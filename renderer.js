@@ -414,12 +414,19 @@ async function launchGame() {
       return;
     }
 
-    // Écoute de la progression du téléchargement des assets
+    // Écoute de la progression : installation NeoForge + téléchargement assets
     ipc.onGameProgress((p) => {
-      if (p.type === 'download' || p.type === 'extract') {
-        const v = p.total > 0 ? Math.round((p.task / p.total) * 70) : 0;
-        bar.style.width = (5 + v) + '%';
-        pct.textContent = (5 + v) + '%';
+      if (p.type === 'setup') {
+        // Phase auto-install NeoForge (0..80%)
+        const v = Math.round((p.pct || 0) * 80);
+        bar.style.width = v + '%';
+        pct.textContent = v + '%';
+        stat.textContent = p.msg || 'Installation...';
+      } else if (p.type === 'download' || p.type === 'extract') {
+        // Phase téléchargement assets Minecraft (80..98%)
+        const v = p.total > 0 ? Math.round((p.task / p.total) * 18) : 0;
+        bar.style.width = (80 + v) + '%';
+        pct.textContent = (80 + v) + '%';
         stat.textContent = `${p.type === 'extract' ? 'Extraction' : 'Téléchargement'} : ${p.task} / ${p.total}`;
       }
     });
@@ -431,8 +438,8 @@ async function launchGame() {
       if (cancelBtn) cancelBtn.textContent = 'Annuler';
     });
 
-    bar.style.width = '5%'; pct.textContent = '5%';
-    stat.textContent = 'Démarrage de Minecraft...';
+    bar.style.width = '2%'; pct.textContent = '2%';
+    stat.textContent = 'Vérification de NeoForge...';
 
     const result = await ipc.launch({
       session:     currentSession,
