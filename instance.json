@@ -1,6 +1,6 @@
 {
   "instance": {
-    "name": "Mon Instance",
+    "name": "TerraNova",
     "version": "1.21.1",
     "loader": "NeoForge 21.1.233",
     "java": "21",
@@ -10,7 +10,7 @@
     "resource_packs": 3,
     "shaders": "BSL v8.2",
     "ram_mb": 6144,
-    "path": "C:\\TerraNova\\instances\\mon-instance",
+    "path": "C:\\TerraNova\\instances\\terranova",
     "last_launch": "Aujourd'hui à 14:35",
     "playtime": "12h 47m",
     "mods": [

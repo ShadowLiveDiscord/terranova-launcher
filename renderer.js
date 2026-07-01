@@ -56,7 +56,7 @@ function loadInstance() {
 
 function getDefaultInstance() {
   return {
-    instance: { name: 'Mon Instance', version: '1.20.4', loader: 'Forge 47.2.0', java: '17', description: '', mods_count: 0, resource_packs: 0, shaders: '-', ram_mb: 4096, path: 'C:\\TerraNova\\instances\\mon-instance', last_launch: '-', playtime: '-', mods: [] },
+    instance: { name: 'TerraNova', version: '1.20.4', loader: 'Forge 47.2.0', java: '17', description: '', mods_count: 0, resource_packs: 0, shaders: '-', ram_mb: 4096, path: 'C:\\TerraNova\\instances\\terranova', last_launch: '-', playtime: '-', mods: [] },
     launcher: { version: '1.2.0', latest_version: '1.2.0' },
     admin: { instance_version: '1', changelog: '', force_update: false }
   };
@@ -276,13 +276,13 @@ function showToast(msg) {
 
 // ── Ouvrir dossier ──
 function openFolder() {
-  const p = instanceData?.instance?.path || 'C:\\TerraNova\\instances\\mon-instance';
+  const p = instanceData?.instance?.path || 'C:\\TerraNova\\instances\\terranova';
   if (ipc) ipc.openPath(p);
   else showToast('📁 ' + p);
 }
 
 function openSavesFolder() {
-  const base = instanceData?.instance?.path || 'C:\\TerraNova\\instances\\mon-instance';
+  const base = instanceData?.instance?.path || 'C:\\TerraNova\\instances\\terranova';
   const p = base.replace(/\\/g, '\\') + '\\saves';
   if (ipc) ipc.openPath(p);
   else showToast('📁 ' + p);
