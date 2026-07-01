@@ -1547,6 +1547,7 @@ function adminSave() {
       if (text)    text.textContent    = server.changelog || '';
       if (remote2) remote2.textContent = `v${server.instanceVersion}`;
       showToast('✅ distribution.json sauvegardé — pousse sur GitHub pour déployer');
+      loadRealMods();
     } catch (e) {
       showToast('Erreur écriture : ' + e.message);
     }
@@ -1586,7 +1587,8 @@ function adminPreview() {
 
 async function adminPickMods() {
   if (!ipc?.pickMods) { showToast('Disponible uniquement dans l\'app Electron'); return; }
-  const files = await ipc.pickMods();
+  // On passe realInstanceDir pour que les fichiers soient aussi copiés dans mods/
+  const files = await ipc.pickMods(realInstanceDir);
   if (!files.length) return;
 
   const textarea = document.getElementById('admin-files');
@@ -1597,7 +1599,9 @@ async function adminPickMods() {
   });
   const existing = textarea.value.trim();
   textarea.value = existing ? existing + '\n' + lines.join('\n') : lines.join('\n');
-  showToast(`✅ ${files.length} fichier(s) ajouté(s) — remplace l'URL par ton hébergement`);
+  showToast(`✅ ${files.length} fichier(s) ajouté(s) — copiés dans mods/ et prêts à tester`);
+  // Rafraîchit l'onglet Mods pour afficher les fichiers copiés
+  await loadRealMods();
 }
 
 function adminSimulateUpdate() {

@@ -406,7 +406,8 @@ ipcMain.handle('mods:add', async (_, instanceDir, mode = 'files') => {
 });
 
 // ── Dialog : sélectionner des JARs + calcul SHA256 (panel admin) ──────────────
-ipcMain.handle('admin:pickMods', async () => {
+// Si instanceDir est fourni, copie aussi les fichiers dans mods/ pour un test local immédiat.
+ipcMain.handle('admin:pickMods', async (_, instanceDir) => {
   const r = await dialog.showOpenDialog(mainWindow, {
     title: 'Sélectionner les fichiers de mods',
     filters: [{ name: 'Fichiers mod', extensions: ['jar', 'zip', 'json', 'toml'] }, { name: 'Tous', extensions: ['*'] }],
@@ -415,13 +416,20 @@ ipcMain.handle('admin:pickMods', async () => {
   if (r.canceled || !r.filePaths.length) return [];
 
   const crypto = require('crypto');
-  return r.filePaths.map(fp => {
+  const results = r.filePaths.map(fp => {
     const stat = fs.statSync(fp);
     const hash = crypto.createHash('sha256').update(fs.readFileSync(fp)).digest('hex');
-    return {
-      filename: path.basename(fp),
-      size:     stat.size,
-      sha256:   hash,
-    };
+    return { filename: path.basename(fp), size: stat.size, sha256: hash, _src: fp };
   });
+
+  // Copie dans instanceDir/mods/ pour que l'admin puisse tester immédiatement
+  if (instanceDir) {
+    const modsDir = path.join(instanceDir, 'mods');
+    fs.mkdirSync(modsDir, { recursive: true });
+    for (const m of results) {
+      try { fs.copyFileSync(m._src, path.join(modsDir, m.filename)); } catch {}
+    }
+  }
+
+  return results.map(({ filename, size, sha256 }) => ({ filename, size, sha256 }));
 });
