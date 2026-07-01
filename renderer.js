@@ -29,12 +29,16 @@ const ipc = ipcRenderer ? {
   onGameData:        (cb) => ipcRenderer.on('game:data',     (_, d) => cb(d)),
   onGameClose:       (cb) => ipcRenderer.on('game:close',    (_, code) => cb(code)),
   onGameLaunched:    (cb) => ipcRenderer.on('game:launched', (_, data) => cb(data)),
+  onPlaytime:        (cb) => ipcRenderer.on('game:playtime', (_, data) => cb(data)),
   // Java / RAM
   detectJava:        () => ipcRenderer.invoke('java:detect'),
   getRamStats:       () => ipcRenderer.invoke('ram:stats'),
   // Discord RPC
   discordPlay:       (opts) => ipcRenderer.invoke('discord:play', opts),
   discordStop:       ()     => ipcRenderer.invoke('discord:stop'),
+  // Serveur
+  pingServer:        (opts) => ipcRenderer.invoke('server:ping', opts),
+  dbQuery:           (opts) => ipcRenderer.invoke('server:db',   opts),
 } : null;
 
 // ── Titlebar ──
@@ -652,9 +656,9 @@ async function launchGame() {
     ipc.onGameClose((code) => {
       gameRunning = false;
       overlay.classList.remove('active');
-      if (code !== 0 && code !== null) showToast(`Minecraft fermé (code ${code})`);
       if (cancelBtn) cancelBtn.textContent = 'Annuler';
       ipc.discordStop?.();
+      if (code !== 0 && code !== null) showCrashModal(code);
     });
 
     bar.style.width = '2%'; pct.textContent = '2%';
@@ -1104,6 +1108,72 @@ async function loadRealMods() {
   document.getElementById('mods-count').textContent         = mods.length;
 }
 
+// ── Crash detection ───────────────────────────────────────────────────────────
+function showCrashModal(code) {
+  const modal = document.getElementById('crash-modal');
+  if (!modal) return;
+  const codeEl = document.getElementById('crash-code');
+  if (codeEl) codeEl.textContent = code;
+  modal.style.display = 'flex';
+}
+
+function closeCrashModal() {
+  const modal = document.getElementById('crash-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function openMinecraftLogs() {
+  if (!ipc || !realInstanceDir) { showToast('Chemin instance non résolu'); return; }
+  ipc.openPath(path.join(realInstanceDir, 'logs', 'latest.log'));
+}
+
+// ── Statut du serveur Minecraft ───────────────────────────────────────────────
+function renderServerStatus(data) {
+  const badge   = document.getElementById('server-badge');
+  const players = document.getElementById('srv-players');
+  const ping    = document.getElementById('srv-ping');
+  const version = document.getElementById('srv-version');
+  const motd    = document.getElementById('server-motd');
+
+  if (!badge) return;
+
+  if (data.online) {
+    badge.textContent = 'EN LIGNE';
+    badge.className   = 'server-badge online';
+    if (players) players.textContent = `${data.players} / ${data.maxPlayers}`;
+    if (ping)    ping.textContent    = `${data.latency} ms`;
+    if (version) version.textContent = data.version || '—';
+    if (motd)    motd.textContent    = data.motd    || '';
+  } else {
+    badge.textContent = 'HORS LIGNE';
+    badge.className   = 'server-badge offline';
+    if (players) players.textContent = '—';
+    if (ping)    ping.textContent    = '—';
+    if (version) version.textContent = '—';
+    if (motd)    motd.textContent    = '';
+  }
+}
+
+async function refreshServerStatus() {
+  if (!ipc?.pingServer || !instanceData) return;
+  const badge = document.getElementById('server-badge');
+  if (badge) { badge.textContent = '...'; badge.className = 'server-badge'; }
+
+  const host = instanceData.server?.host || 'play.terranova.fr';
+  const port = instanceData.server?.port || 25565;
+  const el   = document.getElementById('server-host');
+  if (el) el.textContent = host;
+
+  const res = await ipc.pingServer({ host, port });
+  renderServerStatus(res);
+}
+
+function startServerPolling() {
+  if (!ipc) return;
+  refreshServerStatus();
+  setInterval(refreshServerStatus, 60 * 1000);
+}
+
 // ── Panel Admin ──────────────────────────────────────────────────────────────
 function adminLoad() {
   if (!instanceData?.admin) return;
@@ -1207,6 +1277,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   loadSettings();
   startRamPolling();
   startUpdatePolling();
+  startServerPolling();
 
   if (ipc) {
     // Version dynamique depuis app.getVersion()
@@ -1232,6 +1303,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (instanceData?.instance) instanceData.instance.last_launch = data.last_launch;
         const el = document.getElementById('info-last');
         if (el) el.textContent = data.last_launch;
+      }
+    });
+
+    ipc.onPlaytime((data) => {
+      if (data?.playtime) {
+        if (instanceData?.instance) instanceData.instance.playtime = data.playtime;
+        const el = document.getElementById('info-time');
+        if (el) el.textContent = data.playtime;
       }
     });
 

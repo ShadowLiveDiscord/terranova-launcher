@@ -496,6 +496,23 @@ body.has-update .app-layout { top: 64px; }
 .status-val { font-weight: 600; }
 .status-val.green { color: var(--green-bright); }
 
+/* SERVER STATUS PANEL */
+.server-panel { background: var(--bg3); border: 1px solid var(--border2); border-radius: 5px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.server-panel-header { display: flex; align-items: center; justify-content: space-between; }
+.server-refresh-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px; display: flex; align-items: center; transition: color 0.2s; }
+.server-refresh-btn:hover { color: var(--text); }
+.server-status-row { display: flex; align-items: center; gap: 8px; }
+.server-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+.server-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.server-badge.online { background: rgba(94, 201, 77, 0.12); color: var(--green-bright); border: 1px solid rgba(94, 201, 77, 0.3); }
+.server-badge.offline { background: rgba(192, 48, 48, 0.12); color: #f87171; border: 1px solid rgba(192, 48, 48, 0.3); }
+.server-host { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.server-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.server-stat { display: flex; flex-direction: column; gap: 2px; background: var(--bg2); border-radius: 4px; padding: 6px 8px; }
+.server-stat span:first-child { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.server-stat span:last-child { font-size: 13px; font-weight: 600; color: var(--text); }
+.server-motd { font-size: 10px; color: var(--muted); font-style: italic; min-height: 12px; }
+
 /* SHORTCUTS */
 /* CHANGELOG PANEL */
 .changelog-panel { background: var(--bg3); border: 1px solid var(--border2); border-radius: 5px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -626,6 +643,17 @@ body.has-update .app-layout { top: 64px; }
 .update-box h2 { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: 3px; color: var(--green-bright); margin-bottom: 10px; }
 .update-box p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
 .update-actions { display: flex; justify-content: center; gap: 10px; margin-top: 16px; }
+
+/* ── CRASH MODAL ── */
+.crash-modal { position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 2500; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+.crash-modal[style*="flex"] { display: flex !important; }
+.crash-box { text-align: center; width: 440px; background: var(--bg2); border: 1px solid rgba(239,68,68,.35); border-radius: 12px; padding: 36px 32px; }
+.crash-icon { font-size: 40px; margin-bottom: 14px; }
+.crash-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: 2px; color: #ef4444; margin: 0 0 8px; }
+.crash-sub { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.crash-sub strong { color: #ef4444; }
+.crash-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
+.crash-actions { display: flex; gap: 10px; justify-content: center; }
 
 /* SAVES */
 .save-item { display:flex; align-items:center; gap:14px; padding:12px 14px; background:#111; border:1px solid #1e1e1e; border-radius:4px; margin-bottom:8px; cursor:pointer; transition:border-color .15s; }

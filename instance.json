@@ -81,7 +81,11 @@
                      "latest_version":  "1.2.0",
                      "update_url":  ""
                  },
-    "admin":  {
+    "server": {
+    "host": "play.terranova.fr",
+    "port": 25565
+  },
+  "admin":  {
                   "instance_version":  "2",
                   "local_version":  "1",
                   "changelog":  "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",

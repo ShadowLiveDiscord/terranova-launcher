@@ -466,6 +466,35 @@
         <div class="status-row"><span>Mémoire allouée</span><span class="status-val"><span id="status-ram">6144</span> MB</span></div>
       </div>
 
+      <!-- Statut serveur -->
+      <div class="server-panel">
+        <div class="server-panel-header">
+          <h3 class="panel-title">SERVEUR</h3>
+          <button class="server-refresh-btn" onclick="refreshServerStatus()" title="Actualiser">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+        </div>
+        <div class="server-status-row">
+          <span class="server-badge" id="server-badge">Connexion...</span>
+          <span class="server-host" id="server-host">play.terranova.fr</span>
+        </div>
+        <div class="server-stats">
+          <div class="server-stat">
+            <span>Joueurs</span>
+            <span id="srv-players">—</span>
+          </div>
+          <div class="server-stat">
+            <span>Ping</span>
+            <span id="srv-ping">—</span>
+          </div>
+          <div class="server-stat">
+            <span>Version</span>
+            <span id="srv-version">—</span>
+          </div>
+        </div>
+        <div class="server-motd" id="server-motd"></div>
+      </div>
+
       <!-- Changelog -->
       <div class="changelog-panel">
         <div class="changelog-header">
@@ -543,6 +572,21 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- CRASH MODAL -->
+  <div class="crash-modal" id="crash-modal" style="display:none">
+    <div class="crash-box">
+      <div class="crash-icon">💥</div>
+      <h2 class="crash-title">Minecraft s'est fermé brutalement</h2>
+      <p class="crash-sub">Code de sortie : <strong id="crash-code">—</strong></p>
+      <p class="crash-desc">Le jeu a quitté avec une erreur. Consultez les logs pour diagnostiquer le problème.</p>
+      <div class="crash-actions">
+        <button class="mc-btn-inline green" onclick="openMinecraftLogs()">📄 Voir les logs</button>
+        <button class="mc-btn-inline" style="background:var(--bg4)" onclick="closeCrashModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <script src="renderer.js"></script>
 </body>
 </html>
