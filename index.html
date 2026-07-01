@@ -106,7 +106,6 @@
         <button class="nav-item" data-tab="settings">
           <img src="assets/parametre.png" class="nav-icon-img" alt="Paramètres"> PARAMÈTRES
         </button>
-
         <button class="nav-item" data-tab="saves">
           <img src="assets/Sauvegardes.png" class="nav-icon-img" alt="Sauvegardes"> SAUVEGARDES
         </button>
@@ -348,18 +347,14 @@
 
       <!-- TAB: SAVES -->
       <div class="tab" id="tab-saves">
-        <div class="tab-topbar"><h2>SAUVEGARDES</h2></div>
-        <div class="placeholder-tab">
-          <span>💾</span>
-          <p>Les sauvegardes se trouvent dans le dossier <code style="font-family:monospace;color:#4aaa3a;font-size:12px">saves\</code> de votre instance.</p>
-          <button class="mc-btn-inline green" style="margin-top:8px" onclick="openSavesFolder()">📁 Ouvrir le dossier des sauvegardes</button>
-        </div>
+        <div class="tab-topbar"><h2>SAUVEGARDES</h2><button class="mc-btn-inline green" onclick="openSavesFolder()">📁 Ouvrir le dossier</button></div>
+        <div id="saves-list" style="padding:14px 22px;flex:1;overflow-y:auto;"></div>
       </div>
 
       <!-- TAB: OPTIONS -->
       <div class="tab" id="tab-options">
-        <div class="tab-topbar"><h2>OPTIONS</h2></div>
-        <div class="placeholder-tab"><span>🔧</span><p>Options avancées à venir.</p></div>
+        <div class="tab-topbar"><h2>OPTIONS MINECRAFT</h2><button class="mc-btn-inline green" onclick="saveGameOptions()">Sauvegarder</button></div>
+        <div id="options-content" style="padding:20px 24px;flex:1;overflow-y:auto;"></div>
       </div>
 
       <!-- TAB: COMPTE -->

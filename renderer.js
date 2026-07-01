@@ -235,6 +235,8 @@ function finishUpdate() {
 // ── Navigation principale ──
 function showTab(name) {
   if (name === 'settings') populateJavaSelect();
+  if (name === 'saves')   loadSaves();
+  if (name === 'options') loadOptions();
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   const tab = document.getElementById('tab-' + name);
@@ -244,6 +246,124 @@ function showTab(name) {
   // Panneau droit visible seulement sur instance
   const rp = document.getElementById('right-panel');
   if (rp) rp.style.display = (name === 'instance') ? 'flex' : 'none';
+}
+
+// ── Sauvegardes ───────────────────────────────────────────────────────────────
+function loadSaves() {
+  const el = document.getElementById('saves-list');
+  if (!el || !fs || !path) return;
+  const base = realInstanceDir || instanceData?.instance?.path || '';
+  const savesDir = path.join(base, 'saves');
+  try {
+    const entries = fs.readdirSync(savesDir, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => ({ name: d.name, mtime: fs.statSync(path.join(savesDir, d.name)).mtime }))
+      .sort((a, b) => b.mtime - a.mtime);
+    if (!entries.length) {
+      el.innerHTML = '<div class="placeholder-tab"><span>💾</span><p>Aucune sauvegarde trouvée.<br>Lance le jeu une première fois.</p></div>';
+      return;
+    }
+    el.innerHTML = entries.map(f => {
+      const d = f.mtime.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const safeName = f.name.replace(/'/g, "\\'");
+      return `<div class="save-item" onclick="openSaveFolder('${safeName}')">
+        <div class="save-icon">🌍</div>
+        <div class="save-info"><div class="save-name">${f.name}</div><div class="save-date">${d}</div></div>
+        <button class="mc-btn-inline green" onclick="event.stopPropagation();openSaveFolder('${safeName}')">📁 Ouvrir</button>
+      </div>`;
+    }).join('');
+  } catch {
+    el.innerHTML = '<div class="placeholder-tab"><span>💾</span><p>Dossier saves introuvable.<br>Lance le jeu une première fois.</p></div>';
+  }
+}
+
+function openSaveFolder(name) {
+  const base = realInstanceDir || instanceData?.instance?.path || '';
+  if (ipc) ipc.openPath(path.join(base, 'saves', name));
+}
+
+// ── Options Minecraft (options.txt) ──────────────────────────────────────────
+const OPT_DEFS = [
+  { key:'renderDistance',   label:'Distance de rendu',    type:'range',  min:2,  max:32, unit:' chunks' },
+  { key:'maxFps',           label:'FPS maximum',          type:'range',  min:10, max:260, unit:' fps', display: v => v >= 260 ? 'Illimité' : v + ' fps' },
+  { key:'fullscreen',       label:'Plein écran',          type:'bool' },
+  { key:'guiScale',         label:'Taille interface',     type:'select', opts:{ 0:'Auto', 1:'Petit', 2:'Normal', 3:'Grand', 4:'Très grand' } },
+  { key:'particles',        label:'Particules',           type:'select', opts:{ 0:'Toutes', 1:'Réduites', 2:'Minimales' } },
+  { key:'fov',              label:'Champ de vision (FOV)',type:'range',  min:30, max:110, unit:'°' },
+  { key:'gamma',            label:'Luminosité',           type:'range',  min:0,  max:100, unit:'%', scale:100 },
+  { key:'masterVolume',     label:'Volume général',       type:'range',  min:0,  max:100, unit:'%', scale:100 },
+];
+
+let _optParsed = {};
+
+function loadOptions() {
+  const el = document.getElementById('options-content');
+  if (!el || !fs || !path) return;
+  const base = realInstanceDir || instanceData?.instance?.path || '';
+  const optPath = path.join(base, 'options.txt');
+  try {
+    const raw = fs.readFileSync(optPath, 'utf8');
+    _optParsed = {};
+    raw.split('\n').forEach(line => {
+      const i = line.indexOf(':');
+      if (i > 0) _optParsed[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+    });
+  } catch {
+    el.innerHTML = '<div class="placeholder-tab"><span>🔧</span><p>options.txt introuvable.<br>Lance le jeu une première fois.</p></div>';
+    return;
+  }
+  el.innerHTML = `<div class="opt-section"><h3>Paramètres du jeu</h3>${OPT_DEFS.map(def => {
+    const raw = _optParsed[def.key];
+    const val = raw !== undefined ? raw : '';
+    if (def.type === 'range') {
+      const num = parseFloat(val) * (def.scale || 1);
+      const disp = def.display ? def.display(Math.round(num)) : Math.round(num) + (def.unit || '');
+      return `<div class="opt-row">
+        <span class="opt-label">${def.label}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="range" min="${def.min}" max="${def.max}" value="${Math.min(def.max, Math.max(def.min, Math.round(num)))}"
+            oninput="this.nextElementSibling.textContent=${def.display ? '(this.value>=260?\'Illimité\':this.value+\' fps\')' : '`${this.value}${def.unit||\'\'}`'}"
+            data-opt="${def.key}" data-scale="${def.scale || 1}">
+          <span class="opt-value">${disp}</span>
+        </div>
+      </div>`;
+    }
+    if (def.type === 'bool') {
+      const checked = val === 'true' ? 'checked' : '';
+      return `<div class="opt-row"><span class="opt-label">${def.label}</span><input type="checkbox" ${checked} data-opt="${def.key}"></div>`;
+    }
+    if (def.type === 'select') {
+      const opts = Object.entries(def.opts).map(([k, v]) => `<option value="${k}" ${val === k ? 'selected' : ''}>${v}</option>`).join('');
+      return `<div class="opt-row"><span class="opt-label">${def.label}</span><select data-opt="${def.key}">${opts}</select></div>`;
+    }
+    return '';
+  }).join('')}</div>`;
+}
+
+function saveGameOptions() {
+  const base = realInstanceDir || instanceData?.instance?.path || '';
+  const optPath = path.join(base, 'options.txt');
+  document.querySelectorAll('[data-opt]').forEach(el => {
+    const key = el.dataset.opt;
+    let val;
+    if (el.type === 'checkbox') val = el.checked ? 'true' : 'false';
+    else if (el.type === 'range') val = (parseFloat(el.value) / (parseFloat(el.dataset.scale) || 1)).toFixed(el.dataset.scale > 1 ? 6 : 0);
+    else val = el.value;
+    _optParsed[key] = val;
+  });
+  try {
+    const lines = fs.readFileSync(optPath, 'utf8').split('\n');
+    const updated = lines.map(line => {
+      const i = line.indexOf(':');
+      if (i > 0) {
+        const k = line.slice(0, i).trim();
+        if (_optParsed[k] !== undefined) return k + ':' + _optParsed[k];
+      }
+      return line;
+    });
+    fs.writeFileSync(optPath, updated.join('\n'), 'utf8');
+    showToast('Options sauvegardées');
+  } catch { showToast('Erreur : options.txt inaccessible'); }
 }
 
 document.querySelectorAll('.nav-item').forEach(btn => {
