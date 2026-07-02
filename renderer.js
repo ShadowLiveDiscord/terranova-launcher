@@ -858,15 +858,16 @@ async function launchGame() {
     if (!result.success) {
       gameRunning = false;
       overlay.classList.remove('active');
+      stat.textContent = 'Erreur : ' + result.error;
       showToast('Erreur lancement : ' + result.error);
       return;
     }
 
-    // Jeu lancé
+    // Jeu lancé — la JVM démarre, peut prendre 1-3 min avant que la fenêtre apparaisse
     gameRunning = true;
     setStep('launch');
     bar.style.width = '100%'; pct.textContent = '100%';
-    stat.textContent = 'Minecraft lancé !';
+    stat.textContent = 'Minecraft en cours de démarrage... (peut prendre 1-3 min)';
 
     // Discord Rich Presence
     ipc.discordPlay?.({
@@ -876,10 +877,17 @@ async function launchGame() {
     });
     if (cancelBtn) cancelBtn.textContent = 'Fermer le launcher';
 
-    // Fermer le launcher si l'option est activée
+    // Ne minimiser qu'après réception de données du jeu (JVM active) ou après 20s max
     const closeOnLaunch = localStorage.getItem('s_close_on_launch');
     if (closeOnLaunch !== '0') {
-      setTimeout(() => ipcRenderer?.send('minimize-window'), 1500);
+      let minimized = false;
+      const doMinimize = () => {
+        if (minimized) return;
+        minimized = true;
+        ipcRenderer?.send('minimize-window');
+      };
+      ipcRenderer?.once('game:data', () => doMinimize());
+      setTimeout(doMinimize, 20000);
     }
     return;
   }
