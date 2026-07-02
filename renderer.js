@@ -116,18 +116,20 @@ function loadInstance() {
     try {
       const raw = fs.readFileSync(path.join(__dirname, 'instance.json'), 'utf8');
       instanceData = JSON.parse(raw);
-      // À la première utilisation (localStorage vide), initialise depuis le distribution.json
-      // bundlé plutôt que de partir à "1" — évite le faux-positif "mise à jour disponible"
-      if (!localStorage.getItem('localInstanceVersion')) {
-        try {
-          const dist = JSON.parse(fs.readFileSync(path.join(__dirname, 'distribution.json'), 'utf8'));
-          const bundledVer = dist?.servers?.[0]?.instanceVersion || dist?.admin?.instance_version;
-          if (bundledVer) {
+      // Initialise localInstanceVersion depuis le distribution.json bundlé si la version
+      // stockée est inférieure — évite les faux-positifs après mise à jour du launcher
+      try {
+        const dist = JSON.parse(fs.readFileSync(path.join(__dirname, 'distribution.json'), 'utf8'));
+        const bundledVer = dist?.servers?.[0]?.instanceVersion || dist?.admin?.instance_version;
+        if (bundledVer) {
+          const stored   = parseInt(localStorage.getItem('localInstanceVersion') || '0');
+          const bundled  = parseInt(bundledVer);
+          if (bundled > stored) {
             localInstanceVersion = bundledVer;
             localStorage.setItem('localInstanceVersion', bundledVer);
           }
-        } catch {}
-      }
+        }
+      } catch {}
       applyInstance();
       checkAdminUpdate();
       return;
