@@ -453,6 +453,7 @@ async function startUpdate() {
 function finishUpdate() {
   localInstanceVersion = instanceData.admin.instance_version;
   localStorage.setItem('localInstanceVersion', localInstanceVersion);
+  dismissUpdate();
   document.getElementById('update-overlay').style.display       = 'none';
   document.getElementById('update-actions').style.display        = 'flex';
   document.getElementById('update-progress-wrap').style.display  = 'none';
@@ -1569,15 +1570,8 @@ function adminSave() {
       if (remote2) remote2.textContent = `v${server.instanceVersion}`;
       showToast('✅ distribution.json sauvegardé');
       loadRealMods();
-      // Déclenche la bannière de MAJ si la version a été bumped
-      const savedVer = parseInt(server.instanceVersion || '0');
-      const currLocalVer = parseInt(localInstanceVersion || '1');
-      if (savedVer > currLocalVer) {
-        instanceData.admin.instance_version = server.instanceVersion;
-        instanceData.admin.changelog        = server.changelog || '';
-        instanceData.admin.force_update     = server.forceUpdate || false;
-        showUpdateBanner(server.changelog, server.forceUpdate || false);
-      }
+      // Réévalue proprement si une MAJ est nécessaire en relisant le fichier
+      checkAdminUpdate();
     } catch (e) {
       showToast('Erreur écriture : ' + e.message);
     }
