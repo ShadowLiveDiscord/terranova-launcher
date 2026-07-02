@@ -330,26 +330,6 @@ function applyRemoteManifest(remote) {
 async function checkAdminUpdate() {
   if (!instanceData) return;
 
-  // Priorité au distribution.json local sauvegardé par l'admin
-  // (dans resourcesPath en mode packagé, ou __dirname en dev)
-  if (fs && path) {
-    const writableDir = (typeof __dirname !== 'undefined' && __dirname.includes('app.asar'))
-      ? process.resourcesPath
-      : (typeof __dirname !== 'undefined' ? __dirname : null);
-    if (writableDir) {
-      const localDistPath = path.join(writableDir, 'distribution.json');
-      if (fs.existsSync(localDistPath)) {
-        try {
-          const localDist = JSON.parse(fs.readFileSync(localDistPath, 'utf8'));
-          if (localDist?.servers?.length) {
-            applyRemoteManifest(localDist);
-            return; // Pas besoin de fetch GitHub
-          }
-        } catch {}
-      }
-    }
-  }
-
   const manifestUrl = instanceData.admin?.manifest_url;
   if (!ipc || !manifestUrl) {
     const localVer = parseInt(instanceData.admin?.instance_version || '1');
@@ -1574,8 +1554,7 @@ function adminSave() {
       if (remote2) remote2.textContent = `v${server.instanceVersion}`;
       showToast('✅ distribution.json sauvegardé');
       loadRealMods();
-      checkAdminUpdate();
-      // Sync GitHub pour notifier les autres PC
+      // Sync GitHub puis vérification — les autres PC fetchent GitHub, pas le fichier local
       const token = document.getElementById('admin-github-token')?.value?.trim();
       if (token) {
         localStorage.setItem('admin_github_token', token);
@@ -1585,6 +1564,7 @@ function adminSave() {
           ipc.pushDistribution(JSON.stringify(distributionData, null, 2), manifestUrl, token).then(res => {
             if (res.success) {
               showToast('✅ Synchronisé sur GitHub — autres PC seront notifiés');
+              checkAdminUpdate(); // Vérifie depuis GitHub après le push
             } else {
               showToast('⚠️ GitHub : ' + (res.error || 'erreur inconnue'));
             }
@@ -1592,6 +1572,7 @@ function adminSave() {
         }
       } else {
         showToast('💡 Renseigne un GitHub Token pour sync multi-PC');
+        checkAdminUpdate();
       }
     } catch (e) {
       showToast('Erreur écriture : ' + e.message);
