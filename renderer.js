@@ -42,7 +42,9 @@ const ipc = ipcRenderer ? {
   dbQuery:           (opts) => ipcRenderer.invoke('server:db',      opts),
   dbStats:           ()     => ipcRenderer.invoke('server:dbStats'),
   // Crash
-  getCrashReport:    (dir)  => ipcRenderer.invoke('crash:getReport', dir),
+  getCrashReport:      (dir)            => ipcRenderer.invoke('crash:getReport', dir),
+  // Admin sync GitHub
+  pushDistribution:    (content, url, token) => ipcRenderer.invoke('admin:pushDistribution', { content, manifestUrl: url, token }),
 } : null;
 
 // ── Titlebar ──
@@ -1510,6 +1512,8 @@ function adminLoad() {
       `${f.path} | ${f.url} | ${f.sha256} | ${f.size}`
     ).join('\n');
   }
+  // Token GitHub stocké en localStorage (jamais dans le repo)
+  el('admin-github-token').value = localStorage.getItem('admin_github_token') || '';
 }
 
 function adminBuildData() {
@@ -1570,8 +1574,25 @@ function adminSave() {
       if (remote2) remote2.textContent = `v${server.instanceVersion}`;
       showToast('✅ distribution.json sauvegardé');
       loadRealMods();
-      // Réévalue proprement si une MAJ est nécessaire en relisant le fichier
       checkAdminUpdate();
+      // Sync GitHub pour notifier les autres PC
+      const token = document.getElementById('admin-github-token')?.value?.trim();
+      if (token) {
+        localStorage.setItem('admin_github_token', token);
+        const manifestUrl = instanceData?.admin?.manifest_url;
+        if (manifestUrl && ipc?.pushDistribution) {
+          showToast('⏳ Synchronisation GitHub...');
+          ipc.pushDistribution(JSON.stringify(distributionData, null, 2), manifestUrl, token).then(res => {
+            if (res.success) {
+              showToast('✅ Synchronisé sur GitHub — autres PC seront notifiés');
+            } else {
+              showToast('⚠️ GitHub : ' + (res.error || 'erreur inconnue'));
+            }
+          });
+        }
+      } else {
+        showToast('💡 Renseigne un GitHub Token pour sync multi-PC');
+      }
     } catch (e) {
       showToast('Erreur écriture : ' + e.message);
     }

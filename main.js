@@ -407,6 +407,57 @@ ipcMain.handle('mods:add', async (_, instanceDir, mode = 'files') => {
 
 // ── Dialog : sélectionner des JARs + calcul SHA256 (panel admin) ──────────────
 // Si instanceDir est fourni, copie aussi les fichiers dans mods/ pour un test local immédiat.
+// ── Sync distribution.json vers GitHub (multi-PC) ────────────────────────────
+ipcMain.handle('admin:pushDistribution', async (_, { content, manifestUrl, token }) => {
+  try {
+    const https = require('https');
+    // Parse: https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{file}
+    const m = manifestUrl.match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)/);
+    if (!m) return { success: false, error: 'manifest_url invalide (attendu: raw.githubusercontent.com/owner/repo/branch/file)' };
+    const [, owner, repo, branch, filePath] = m;
+
+    const apiCall = (method, apiPath, body) => new Promise((resolve, reject) => {
+      const bodyStr = body ? JSON.stringify(body) : null;
+      const opts = {
+        hostname: 'api.github.com',
+        path: apiPath,
+        method,
+        headers: {
+          Authorization: `token ${token}`,
+          'User-Agent': 'TerraNova-Launcher',
+          Accept: 'application/vnd.github.v3+json',
+          ...(bodyStr ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) } : {}),
+        },
+      };
+      const req = https.request(opts, (res) => {
+        let data = '';
+        res.on('data', (c) => { data += c; });
+        res.on('end', () => {
+          try { resolve({ status: res.statusCode, body: JSON.parse(data) }); }
+          catch { resolve({ status: res.statusCode, body: data }); }
+        });
+      });
+      req.on('error', reject);
+      if (bodyStr) req.write(bodyStr);
+      req.end();
+    });
+
+    const getRes = await apiCall('GET', `/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`);
+    if (getRes.status !== 200) return { success: false, error: `GET échoué (${getRes.status}): ${getRes.body?.message || ''}` };
+
+    const putRes = await apiCall('PUT', `/repos/${owner}/${repo}/contents/${filePath}`, {
+      message: 'Update distribution.json [admin panel]',
+      content: Buffer.from(content).toString('base64'),
+      sha: getRes.body.sha,
+      branch,
+    });
+    if (putRes.status === 200 || putRes.status === 201) return { success: true };
+    return { success: false, error: `PUT échoué (${putRes.status}): ${putRes.body?.message || ''}` };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 ipcMain.handle('admin:pickMods', async (_, instanceDir) => {
   const r = await dialog.showOpenDialog(mainWindow, {
     title: 'Sélectionner les fichiers de mods',
