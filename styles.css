@@ -727,6 +727,45 @@ body.has-update .app-layout { top: 64px; }
 .opt-row select { background:#1a1a1a; border:1px solid #2a2a2a; color:#ccc; font-size:12px; padding:3px 8px; border-radius:3px; }
 .opt-row input[type=checkbox] { accent-color:var(--green-bright); width:16px; height:16px; cursor:pointer; }
 
+/* ── ADMIN MODS TABLE ── */
+.admin-mods-empty {
+  padding: 20px; text-align: center; font-size: 12px; color: var(--muted);
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 5px;
+}
+.admin-mods-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+  border: 1px solid var(--border2); border-radius: 5px; overflow: hidden;
+}
+.admin-mods-table thead th {
+  background: var(--bg2); color: var(--muted);
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+  padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border2);
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+}
+.admin-mod-row { border-bottom: 1px solid var(--border); transition: background .12s; }
+.admin-mod-row:last-child { border-bottom: none; }
+.admin-mod-row:hover { background: var(--bg2); }
+.admin-mod-row td { padding: 7px 10px; vertical-align: middle; }
+.admin-mod-disabled { opacity: 0.45; }
+.admin-mod-name-input {
+  background: transparent; border: 1px solid transparent; color: var(--text);
+  font-size: 12px; width: 100%; padding: 3px 5px; border-radius: 3px;
+  transition: border-color .15s;
+}
+.admin-mod-name-input:hover { border-color: var(--border2); }
+.admin-mod-name-input:focus { outline: none; border-color: var(--green); background: var(--bg4); }
+.admin-mod-filename {
+  font-size: 10px; color: var(--muted); max-width: 180px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-mod-size { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.admin-mod-delete {
+  background: none; border: 1px solid transparent; color: var(--muted);
+  width: 26px; height: 22px; border-radius: 3px; cursor: pointer; font-size: 11px;
+  transition: all .15s; display: inline-flex; align-items: center; justify-content: center;
+}
+.admin-mod-delete:hover { background: rgba(192,48,48,.2); border-color: var(--red); color: #f87171; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

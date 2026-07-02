@@ -18,6 +18,13 @@ const ipc = ipcRenderer ? {
   openExternal:      (url) => ipcRenderer.invoke('shell:openExternal', url),
   openFolderDialog:  () => ipcRenderer.invoke('dialog:openFolder'),
   pickMods:          () => ipcRenderer.invoke('admin:pickMods'),
+  initDb:            () => ipcRenderer.invoke('admin:initDb'),
+  uploadMods:        (opts) => ipcRenderer.invoke('admin:uploadMods', opts),
+  listMods:          () => ipcRenderer.invoke('admin:listMods'),
+  updateMod:         (opts) => ipcRenderer.invoke('admin:updateMod', opts),
+  deleteMod:         (id)   => ipcRenderer.invoke('admin:deleteMod', { id }),
+  fetchModList:      () => ipcRenderer.invoke('mods:fetchList'),
+  onUploadProgress:  (cb) => ipcRenderer.on('admin:uploadProgress', (_, d) => cb(d)),
   scanMods:          (dir) => ipcRenderer.invoke('mods:scan', dir),
   addMods:           (dir, mode) => ipcRenderer.invoke('mods:add', dir, mode),
   toggleMod:         (opts) => ipcRenderer.invoke('mods:toggle', opts),
@@ -410,7 +417,19 @@ async function startUpdate() {
       setProgress(data.globalPct, label, count);
     });
 
-    const files       = getDistributionFiles();
+    // Priorité : MySQL → fallback distribution.json
+    let files = getDistributionFiles();
+    try {
+      const dbResult = await ipc.fetchModList();
+      if (dbResult?.success && dbResult.mods?.length) {
+        files = dbResult.mods.map(m => ({
+          path:   'mods/' + m.filename,
+          url:    m.download_url,
+          sha256: m.sha256,
+          size:   m.size,
+        }));
+      }
+    } catch {}
     const instanceDir = realInstanceDir || instanceData.instance.path;
     setProgress(0, 'Démarrage...', `0 / ${files.length} fichiers`);
 
@@ -1492,7 +1511,7 @@ function startServerPolling() {
 }
 
 // ── Panel Admin ──────────────────────────────────────────────────────────────
-function adminLoad() {
+async function adminLoad() {
   const el = (id) => document.getElementById(id);
   if (distributionData?.servers?.length) {
     const server = distributionData.servers[0];
@@ -1500,74 +1519,195 @@ function adminLoad() {
     el('admin-local-version').value    = localInstanceVersion   || '1';
     el('admin-force-update').checked   = !!server.forceUpdate;
     el('admin-changelog').value        = server.changelog       || '';
-    el('admin-files').value = (server.modules || []).map(m => {
-      const a = m.artifact || {};
-      return `${a.path || ''} | ${a.url || ''} | ${a.sha256 || a.md5 || 'placeholder'} | ${a.size || 0} | ${m.required !== false ? 'true' : 'false'} | ${m.name || ''} | ${m.type || 'ForgeMod'}`;
-    }).join('\n');
   } else if (instanceData?.admin) {
     const a = instanceData.admin;
     el('admin-instance-version').value = a.instance_version || '1';
     el('admin-local-version').value    = a.local_version    || '1';
     el('admin-force-update').checked   = !!a.force_update;
     el('admin-changelog').value        = a.changelog        || '';
-    el('admin-files').value = (a.files || []).map(f =>
-      `${f.path} | ${f.url} | ${f.sha256} | ${f.size}`
-    ).join('\n');
   }
-  // Token GitHub stocké en localStorage (jamais dans le repo)
   el('admin-github-token').value = localStorage.getItem('admin_github_token') || '';
+  // Charge la liste des mods depuis MySQL
+  await adminLoadMods();
+}
+
+let _adminModsCache = [];
+
+async function adminLoadMods() {
+  if (!ipc) return;
+  const status = document.getElementById('admin-mods-status');
+  const wrap   = document.getElementById('admin-mods-table-wrap');
+  if (!wrap) return;
+
+  if (status) status.textContent = 'Connexion DB...';
+
+  // Crée la table si elle n'existe pas
+  await ipc.initDb();
+
+  const result = await ipc.listMods();
+  if (!result.success) {
+    wrap.innerHTML = `<div class="admin-mods-empty" style="color:#f87171">Erreur DB : ${result.error}</div>`;
+    if (status) status.textContent = 'Erreur';
+    return;
+  }
+
+  _adminModsCache = result.mods;
+  adminRenderModsTable(result.mods);
+  if (status) status.textContent = `${result.mods.filter(m => m.enabled).length} actifs / ${result.mods.length} mods`;
+}
+
+function adminRenderModsTable(mods) {
+  const wrap = document.getElementById('admin-mods-table-wrap');
+  if (!wrap) return;
+
+  if (!mods.length) {
+    wrap.innerHTML = '<div class="admin-mods-empty">Aucun mod enregistré. Clique sur "Uploader des mods" pour commencer.</div>';
+    return;
+  }
+
+  const fmt = (bytes) => bytes > 1e6 ? (bytes / 1e6).toFixed(1) + ' Mo' : Math.round(bytes / 1024) + ' Ko';
+
+  wrap.innerHTML = `
+    <table class="admin-mods-table">
+      <thead>
+        <tr>
+          <th style="width:36%">Nom</th>
+          <th style="width:24%">Fichier</th>
+          <th style="width:8%">Taille</th>
+          <th style="width:11%;text-align:center">Requis</th>
+          <th style="width:11%;text-align:center">Activé</th>
+          <th style="width:10%;text-align:center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${mods.map(m => `
+          <tr class="admin-mod-row ${!m.enabled ? 'admin-mod-disabled' : ''}">
+            <td>
+              <input class="admin-mod-name-input" value="${(m.display_name || '').replace(/"/g, '&quot;')}"
+                onchange="adminUpdateModName(${m.id}, this.value)" title="Cliquer pour renommer">
+            </td>
+            <td class="admin-mod-filename" title="${m.filename}">${m.filename}</td>
+            <td class="admin-mod-size">${fmt(m.size)}</td>
+            <td style="text-align:center">
+              <label class="toggle" title="${m.required ? 'Requis — cliquer pour rendre optionnel' : 'Optionnel — cliquer pour rendre requis'}">
+                <input type="checkbox" ${m.required ? 'checked' : ''} onchange="adminToggleMod(${m.id}, 'required', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </td>
+            <td style="text-align:center">
+              <label class="toggle" title="${m.enabled ? 'Activé' : 'Désactivé'}">
+                <input type="checkbox" ${m.enabled ? 'checked' : ''} onchange="adminToggleMod(${m.id}, 'enabled', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </td>
+            <td style="text-align:center">
+              <button class="admin-mod-delete" onclick="adminDeleteMod(${m.id}, '${m.filename.replace(/'/g, "\\'")}')" title="Supprimer">✕</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function adminToggleMod(id, field, value) {
+  if (!ipc) return;
+  const result = await ipc.updateMod({ id, field, value: value ? 1 : 0 });
+  if (!result.success) { showToast('Erreur : ' + result.error); return; }
+  const mod = _adminModsCache.find(m => m.id === id);
+  if (mod) mod[field] = value ? 1 : 0;
+  const row = document.querySelector(`.admin-mod-row [onchange*="adminToggleMod(${id},"]`)?.closest('tr');
+  if (field === 'enabled' && row) {
+    row.classList.toggle('admin-mod-disabled', !value);
+  }
+  const status = document.getElementById('admin-mods-status');
+  if (status) {
+    const active = _adminModsCache.filter(m => m.enabled).length;
+    status.textContent = `${active} actifs / ${_adminModsCache.length} mods`;
+  }
+}
+
+async function adminUpdateModName(id, name) {
+  if (!ipc) return;
+  const result = await ipc.updateMod({ id, field: 'display_name', value: name });
+  if (!result.success) showToast('Erreur renommage : ' + result.error);
+}
+
+async function adminDeleteMod(id, filename) {
+  if (!confirm(`Supprimer "${filename}" de l'instance ?\n(Le fichier GitHub Release n'est pas supprimé)`)) return;
+  const result = await ipc.deleteMod(id);
+  if (!result.success) { showToast('Erreur : ' + result.error); return; }
+  _adminModsCache = _adminModsCache.filter(m => m.id !== id);
+  adminRenderModsTable(_adminModsCache);
+  const status = document.getElementById('admin-mods-status');
+  if (status) status.textContent = `${_adminModsCache.filter(m => m.enabled).length} actifs / ${_adminModsCache.length} mods`;
+  showToast(`✅ ${filename} supprimé`);
+}
+
+async function adminUploadMods() {
+  if (!ipc) { showToast('Disponible uniquement dans l\'app Electron'); return; }
+  const token = document.getElementById('admin-github-token')?.value?.trim();
+  if (!token) { showToast('⚠️ Renseigne un GitHub Token d\'abord'); return; }
+  localStorage.setItem('admin_github_token', token);
+
+  const progressWrap = document.getElementById('admin-upload-progress');
+  const bar   = document.getElementById('admin-upload-bar');
+  const label = document.getElementById('admin-upload-label');
+
+  if (progressWrap) progressWrap.style.display = 'block';
+  if (label) label.textContent = 'Préparation...';
+
+  ipc.onUploadProgress((data) => {
+    const pct = Math.round(((data.index + 1) / data.total) * 100);
+    if (bar)   bar.style.width    = pct + '%';
+    if (label) label.textContent  = `Upload : ${data.filename} (${data.index + 1}/${data.total})`;
+  });
+
+  const result = await ipc.uploadMods({
+    token,
+    owner: 'ShadowLiveDiscord',
+    repo:  'terranova-launcher',
+    instanceDir: realInstanceDir,
+  });
+
+  if (progressWrap) progressWrap.style.display = 'none';
+
+  if (result.canceled) return;
+  if (!result.success) { showToast('❌ ' + result.error); return; }
+
+  showToast(`✅ ${result.results.length} mod(s) uploadé(s) sur GitHub`);
+  await adminLoadMods();
+  await loadRealMods();
 }
 
 function adminBuildData() {
   const el = (id) => document.getElementById(id);
-  const filesRaw = el('admin-files').value.trim().split('\n').filter(Boolean);
-  const files = filesRaw.map(line => {
-    const [p, url, sha256, size] = line.split('|').map(s => s.trim());
-    return { path: p, url, sha256: sha256 || 'placeholder', size: parseInt(size) || 0 };
-  });
   return {
     instance_version: el('admin-instance-version').value.trim(),
     local_version:    instanceData.admin?.local_version || '1',
     changelog:        el('admin-changelog').value.trim(),
     force_update:     el('admin-force-update').checked,
     manifest_url:     instanceData.admin?.manifest_url,
-    files,
+    files:            [],
   };
 }
 
 function adminSave() {
   if (!fs || !path) { showToast('Disponible uniquement dans l\'app Electron'); return; }
 
-  // En app packagée, __dirname est à l'intérieur du .asar (lecture seule).
-  // On écrit à côté du .asar, dans process.resourcesPath.
   const writableDir = __dirname.includes('app.asar') ? process.resourcesPath : __dirname;
+  const el = (id) => document.getElementById(id);
 
   if (distributionData?.servers?.length) {
     const server = distributionData.servers[0];
-    const el = (id) => document.getElementById(id);
     server.instanceVersion = el('admin-instance-version').value.trim();
     server.changelog       = el('admin-changelog').value.trim();
     server.forceUpdate     = el('admin-force-update').checked;
-
-    const filesRaw = el('admin-files').value.trim().split('\n').filter(Boolean);
-    server.modules = filesRaw.map(line => {
-      const parts = line.split('|').map(s => s.trim());
-      const [p, url, sha256, size, reqStr, name, type] = parts;
-      const baseName = (p || 'mod').split('/').pop().replace(/\.(jar|zip)$/i, '');
-      return {
-        id:       `terranova:${baseName}:auto`,
-        name:     name || baseName,
-        type:     type || 'ForgeMod',
-        required: reqStr !== 'false',
-        artifact: { path: p || '', url: url || '', sha256: sha256 || 'placeholder', size: parseInt(size) || 0 },
-      };
-    });
+    // Les mods sont désormais dans MySQL — on ne touche plus à server.modules depuis ici
 
     const jsonPath = path.join(writableDir, 'distribution.json');
     try {
       fs.writeFileSync(jsonPath, JSON.stringify(distributionData, null, 2), 'utf8');
-      distributionModules = server.modules;
-      reRenderModsPanel();
       const badge   = document.getElementById('changelog-version');
       const text    = document.getElementById('changelog-text');
       const remote2 = document.getElementById('changelog-remote-ver');
@@ -1575,26 +1715,20 @@ function adminSave() {
       if (text)    text.textContent    = server.changelog || '';
       if (remote2) remote2.textContent = `v${server.instanceVersion}`;
       showToast('✅ distribution.json sauvegardé');
-      loadRealMods();
-      // Sync GitHub puis vérification — les autres PC fetchent GitHub, pas le fichier local
-      const token = document.getElementById('admin-github-token')?.value?.trim();
+
+      const token = el('admin-github-token')?.value?.trim();
       if (token) {
         localStorage.setItem('admin_github_token', token);
         const manifestUrl = instanceData?.admin?.manifest_url;
         if (manifestUrl && ipc?.pushDistribution) {
           showToast('⏳ Synchronisation GitHub...');
           ipc.pushDistribution(JSON.stringify(distributionData, null, 2), manifestUrl, token).then(res => {
-            if (res.success) {
-              showToast('✅ Synchronisé sur GitHub — autres PC seront notifiés');
-              checkAdminUpdate(); // Vérifie depuis GitHub après le push
-            } else {
-              showToast('⚠️ GitHub : ' + (res.error || 'erreur inconnue'));
-            }
+            if (res.success) showToast('✅ Synchronisé sur GitHub — les clients recevront la mise à jour');
+            else showToast('⚠️ GitHub : ' + (res.error || 'erreur inconnue'));
           });
         }
       } else {
         showToast('💡 Renseigne un GitHub Token pour sync multi-PC');
-        checkAdminUpdate();
       }
     } catch (e) {
       showToast('Erreur écriture : ' + e.message);
@@ -1609,47 +1743,12 @@ function adminSave() {
     fs.writeFileSync(jsonPath, JSON.stringify(instanceData, null, 2), 'utf8');
     const badge  = document.getElementById('changelog-version');
     const text   = document.getElementById('changelog-text');
-    const remote = document.getElementById('changelog-remote-ver');
-    const local2 = document.getElementById('changelog-local-ver');
-    if (badge)  badge.textContent  = `v${newAdmin.instance_version}`;
-    if (text)   text.textContent   = newAdmin.changelog || '';
-    if (remote) remote.textContent = `v${newAdmin.instance_version}`;
-    if (local2) local2.textContent = `v${newAdmin.local_version}`;
-    showToast('✅ instance.json sauvegardé — pousse sur GitHub pour déployer');
+    if (badge) badge.textContent = `v${newAdmin.instance_version}`;
+    if (text)  text.textContent  = newAdmin.changelog || '';
+    showToast('✅ instance.json sauvegardé');
   } catch (e) {
     showToast('Erreur écriture : ' + e.message);
   }
-}
-
-function adminPreview() {
-  const pre = document.getElementById('admin-json-preview');
-  if (pre.style.display === 'none') {
-    pre.textContent = distributionData?.servers?.length
-      ? JSON.stringify(distributionData, null, 2)
-      : JSON.stringify({ admin: adminBuildData() }, null, 2);
-    pre.style.display = 'block';
-  } else {
-    pre.style.display = 'none';
-  }
-}
-
-async function adminPickMods() {
-  if (!ipc?.pickMods) { showToast('Disponible uniquement dans l\'app Electron'); return; }
-  // On passe realInstanceDir pour que les fichiers soient aussi copiés dans mods/
-  const files = await ipc.pickMods(realInstanceDir);
-  if (!files.length) return;
-
-  const textarea = document.getElementById('admin-files');
-  const baseUrl  = 'https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/';
-  const lines    = files.map(f => {
-    const name = f.filename.replace(/[-_]/g, ' ').replace(/\.(jar|zip)$/i, '');
-    return `mods/${f.filename} | ${baseUrl}${f.filename} | ${f.sha256} | ${f.size} | true | ${name} | ForgeMod`;
-  });
-  const existing = textarea.value.trim();
-  textarea.value = existing ? existing + '\n' + lines.join('\n') : lines.join('\n');
-  showToast(`✅ ${files.length} fichier(s) ajouté(s) — copiés dans mods/ et prêts à tester`);
-  // Rafraîchit l'onglet Mods pour afficher les fichiers copiés
-  await loadRealMods();
 }
 
 function adminSimulateUpdate() {

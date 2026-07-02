@@ -1,0 +1,224 @@
+{
+  "name": "TerraNova",
+  "version": "1.0.0",
+  "description": "Thème sombre gaming vert/cyan — extrait du TerraNova Minecraft Launcher",
+
+  "colors": {
+    "accent": {
+      "green":       "#4aaa3a",
+      "green_bright": "#5ec94d",
+      "green_dark":  "#2d6b22",
+      "red":         "#c03030",
+      "cyan":        "#00d4ff"
+    },
+    "background": {
+      "bg":  "#0d0d0d",
+      "bg2": "#111111",
+      "bg3": "#161616",
+      "bg4": "#1a1a1a",
+      "titlebar": "#080808",
+      "footer":   "#080808",
+      "sidebar":  "#090909"
+    },
+    "border": {
+      "border":  "#1e1e1e",
+      "border2": "#252525"
+    },
+    "text": {
+      "primary": "#e0e0e0",
+      "muted":   "#666666",
+      "dim":     "#777777",
+      "white":   "#ffffff"
+    },
+    "state": {
+      "online":  "#5ec94d",
+      "offline": "#f87171",
+      "error":   "#ef4444",
+      "warning": "#ffb900"
+    },
+    "microsoft_logo": {
+      "red":    "#f25022",
+      "green":  "#7fba00",
+      "blue":   "#00a4ef",
+      "yellow": "#ffb900"
+    }
+  },
+
+  "gradients": {
+    "play_button":      "linear-gradient(180deg, #5fc94e 0%, #3d9a2e 50%, #2d7220 100%)",
+    "login_button":     "linear-gradient(180deg, #3d9a2e 0%, #2d7220 100%)",
+    "login_button_hover": "linear-gradient(180deg, #4aaa38 0%, #367d26 100%)",
+    "progress_bar":     "linear-gradient(180deg, #7ce060 0%, #5aaa3a 40%, #3d7a28 100%)",
+    "memory_bar":       "linear-gradient(90deg, #2d6b22, #5ec94d)",
+    "update_banner":    "linear-gradient(90deg, #1a3a10, #14280c)",
+    "app_update_banner": "linear-gradient(90deg, #102234, #0c1a28)",
+    "avatar":           "linear-gradient(135deg, #2d6b22, #4aaa3a)"
+  },
+
+  "fonts": {
+    "heading": {
+      "family": "Rajdhani",
+      "weights": [400, 600, 700],
+      "google_url": "https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap",
+      "usage": "Titres, nav, boutons, labels uppercase"
+    },
+    "body": {
+      "family": "Roboto",
+      "weights": [300, 400, 500],
+      "google_url": "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap",
+      "usage": "Texte général"
+    },
+    "monospace": {
+      "family": "Press Start 2P",
+      "weights": [400],
+      "google_url": "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap",
+      "usage": "Barre de progression (style Minecraft)"
+    }
+  },
+
+  "typography": {
+    "banner_title":   { "size": "36px", "weight": 700, "family": "Rajdhani", "letter_spacing": "6px" },
+    "section_title":  { "size": "18px", "weight": 700, "family": "Rajdhani", "letter_spacing": "3px" },
+    "nav_item":       { "size": "13px", "weight": 700, "family": "Rajdhani", "letter_spacing": "1.5px" },
+    "tab_label":      { "size": "12px", "weight": 700, "family": "Rajdhani", "letter_spacing": "1.5px" },
+    "panel_title":    { "size": "12px", "weight": 700, "family": "Rajdhani", "letter_spacing": "2px", "color": "muted" },
+    "play_button":    { "size": "22px", "weight": 700, "family": "Rajdhani", "letter_spacing": "3px" },
+    "body":           { "size": "13px", "weight": 400, "family": "Roboto" },
+    "small":          { "size": "11px", "weight": 400, "family": "Roboto" },
+    "tiny":           { "size": "10px", "weight": 400, "family": "Roboto" },
+    "progress":       { "size": "8px",  "weight": 400, "family": "Press Start 2P" }
+  },
+
+  "components": {
+    "titlebar": {
+      "height": "32px",
+      "background": "#080808",
+      "border_bottom": "1px solid #161616"
+    },
+    "sidebar": {
+      "width": "200px",
+      "background": "#090909",
+      "border_right": "1px solid #1e1e1e"
+    },
+    "right_panel": {
+      "width": "280px",
+      "background": "#111111",
+      "border_left": "1px solid #1e1e1e"
+    },
+    "instance_banner": {
+      "height": "220px",
+      "overlay": "linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)"
+    },
+    "footer": {
+      "height": "50px",
+      "background": "#080808",
+      "border_top": "1px solid #1e1e1e"
+    },
+    "nav_item": {
+      "active_border_left": "3px solid #4aaa3a",
+      "active_background": "#161616",
+      "active_color": "#ffffff",
+      "hover_background": "#111111"
+    },
+    "tab_active": {
+      "border_bottom": "2px solid #5ec94d",
+      "color": "#5ec94d"
+    },
+    "panel": {
+      "background": "#161616",
+      "border": "1px solid #252525",
+      "border_radius": "5px",
+      "padding": "12px 14px"
+    },
+    "login_card": {
+      "width": "380px",
+      "background": "rgba(12, 14, 12, 0.88)",
+      "border": "1px solid rgba(74,170,58,0.2)",
+      "border_radius": "12px",
+      "backdrop_filter": "blur(12px)",
+      "box_shadow": "0 24px 60px rgba(0,0,0,0.7)"
+    },
+    "play_button": {
+      "box_shadow": "inset 0 2px 0 rgba(255,255,255,0.2), inset 0 -3px 0 rgba(0,0,0,0.35)"
+    },
+    "progress_bar": {
+      "height": "26px",
+      "background": "#0a0a0a",
+      "border": "3px solid",
+      "border_colors": { "top": "#5aaa3a", "right": "#2d6622", "bottom": "#2d6622", "left": "#5aaa3a" },
+      "border_radius": "2px",
+      "stripe_pattern": "repeating-linear-gradient(90deg, transparent 0px, transparent 14px, rgba(0,0,0,0.15) 14px, rgba(0,0,0,0.15) 16px)"
+    },
+    "toggle": {
+      "width": "40px",
+      "height": "20px",
+      "inactive_background": "#222222",
+      "active_background": "#2d6b22",
+      "active_border": "#4aaa3a",
+      "knob_inactive": "#555555",
+      "knob_active": "#5ec94d"
+    },
+    "badge_required": {
+      "background": "rgba(74,170,58,0.15)",
+      "color": "#5ec94d",
+      "border": "1px solid rgba(74,170,58,0.3)"
+    },
+    "badge_optional": {
+      "background": "rgba(0,212,255,0.1)",
+      "color": "#00d4ff",
+      "border": "1px solid rgba(0,212,255,0.2)"
+    },
+    "badge_online": {
+      "background": "rgba(94,201,77,0.12)",
+      "color": "#5ec94d",
+      "border": "1px solid rgba(94,201,77,0.3)"
+    },
+    "badge_offline": {
+      "background": "rgba(192,48,48,0.12)",
+      "color": "#f87171",
+      "border": "1px solid rgba(192,48,48,0.3)"
+    },
+    "scrollbar": {
+      "width": "4px",
+      "thumb": "#222222",
+      "thumb_hover": "#333333"
+    },
+    "input": {
+      "background": "#1a1a1a",
+      "border": "1px solid #252525",
+      "border_focus": "1px solid #4aaa3a",
+      "color": "#e0e0e0",
+      "border_radius": "3px"
+    },
+    "crash_modal": {
+      "border": "1px solid rgba(239,68,68,0.35)",
+      "title_color": "#ef4444",
+      "diagnosis_border": "3px solid #e74c3c"
+    }
+  },
+
+  "effects": {
+    "logo_glow_cyan":  "drop-shadow(0 0 10px rgba(0,212,255,0.2))",
+    "logo_glow_strong": "drop-shadow(0 0 18px rgba(0,212,255,0.35))",
+    "login_logo_glow": "drop-shadow(0 0 14px rgba(0,212,255,0.4))",
+    "dot_online_glow": "0 0 5px #5ec94d",
+    "dot_status_glow": "0 0 6px #5ec94d",
+    "step_active_glow": "0 0 10px #5ec94d",
+    "launch_blur":     "backdrop-filter: blur(8px)",
+    "login_bg_blur":   "blur(3px) brightness(0.35)"
+  },
+
+  "animations": {
+    "spinner": {
+      "duration": "0.8s",
+      "timing": "linear",
+      "border_inactive": "rgba(74,170,58,0.2)",
+      "border_active": "#5ec94d"
+    },
+    "transition_fast": "0.15s",
+    "transition_normal": "0.18s",
+    "transition_slow": "0.25s",
+    "progress_transition": "width 0.4s ease",
+    "login_fade": "opacity 0.5s ease, transform 0.5s ease"
+  }
+}

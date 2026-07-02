@@ -367,8 +367,8 @@
       <div class="tab" id="tab-admin">
         <div class="tab-topbar">
           <h2>🔧 PANEL ADMIN</h2>
-          <span style="font-size:11px;color:var(--muted);margin-left:8px;">distribution.json → GitHub → clients</span>
-          <button class="mc-btn-inline green" style="margin-left:auto" onclick="adminSave()">💾 Sauvegarder</button>
+          <span style="font-size:11px;color:var(--muted);margin-left:8px;">MySQL + GitHub Release</span>
+          <button class="mc-btn-inline green" style="margin-left:auto" onclick="adminSave()">💾 Déployer</button>
         </div>
         <div style="padding:20px 24px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:18px;">
 
@@ -387,7 +387,7 @@
               <label class="toggle"><input type="checkbox" id="admin-force-update"><span class="toggle-slider"></span></label>
             </div>
             <div class="setting-row">
-              <label>GitHub Token <span style="color:var(--muted);font-size:10px">(sync multi-PC, stocké localement)</span></label>
+              <label>GitHub Token <span style="color:var(--muted);font-size:10px">(upload mods + sync multi-PC, stocké localement)</span></label>
               <input type="password" class="text-input" id="admin-github-token" style="width:220px" placeholder="ghp_...">
             </div>
           </div>
@@ -400,21 +400,32 @@
           </div>
 
           <div class="settings-section">
-            <h3>Fichiers à mettre à jour</h3>
-            <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Un module par ligne : <code style="color:var(--green-bright)">chemin.jar | url | sha256 | taille | required(true/false) | Nom | ForgeMod</code></p>
-            <button class="mc-btn-inline green" style="margin-bottom:10px" onclick="adminPickMods()">📦 Ajouter des mods (calcul SHA256 auto)</button>
-            <textarea class="notes-area" id="admin-files" style="height:140px;resize:vertical;font-family:monospace;font-size:11px" placeholder="mods/jei-1.21.1.jar | https://cdn.../jei.jar | abc123... | 1540000 | true | Just Enough Items | ForgeMod"></textarea>
-            <p style="font-size:11px;color:var(--muted);margin-top:6px;">💡 <strong style="color:var(--green-bright)">required: true</strong> = mod verrouillé (non désactivable) · <strong style="color:var(--cyan)">false</strong> = optionnel (toggle joueur)</p>
+            <h3>Mods de l'instance</h3>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">
+              Les mods sont stockés dans MySQL et hébergés sur GitHub Release <code style="color:var(--green-bright)">mods</code>. Les clients téléchargent automatiquement la liste à jour.
+            </p>
+            <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+              <button class="mc-btn-inline green" onclick="adminUploadMods()">📦 Uploader des mods</button>
+              <button class="mc-btn-inline" style="background:var(--bg4)" onclick="adminLoadMods()">🔄 Actualiser</button>
+              <span id="admin-mods-status" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
+            </div>
+            <div id="admin-upload-progress" style="display:none;margin-bottom:10px">
+              <div class="mc-progress-wrap" style="height:20px">
+                <div class="mc-progress-fill" id="admin-upload-bar" style="width:0%"></div>
+                <div class="mc-progress-label" id="admin-upload-label"></div>
+              </div>
+            </div>
+            <div id="admin-mods-table-wrap">
+              <div class="admin-mods-empty">Ouvre le panel avec Ctrl+Shift+A pour charger les mods.</div>
+            </div>
           </div>
 
           <div class="settings-section">
             <h3>Actions</h3>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button class="mc-btn-inline green" onclick="adminSave()">💾 Sauvegarder distribution.json</button>
-              <button class="mc-btn-inline" style="background:var(--bg4)" onclick="adminPreview()">👁 Prévisualiser JSON</button>
+              <button class="mc-btn-inline green" onclick="adminSave()">💾 Déployer changelog + version</button>
               <button class="mc-btn-inline" style="background:#5865f2" onclick="adminSimulateUpdate()">🔄 Simuler MAJ client</button>
             </div>
-            <pre id="admin-json-preview" style="display:none;margin-top:12px;background:var(--bg1);border:1px solid var(--border);border-radius:4px;padding:12px;font-size:10px;color:var(--green-bright);overflow:auto;max-height:200px"></pre>
           </div>
 
         </div>

@@ -473,7 +473,6 @@ ipcMain.handle('admin:pickMods', async (_, instanceDir) => {
     return { filename: path.basename(fp), size: stat.size, sha256: hash, _src: fp };
   });
 
-  // Copie dans instanceDir/mods/ pour que l'admin puisse tester immédiatement
   if (instanceDir) {
     const modsDir = path.join(instanceDir, 'mods');
     fs.mkdirSync(modsDir, { recursive: true });
@@ -483,4 +482,200 @@ ipcMain.handle('admin:pickMods', async (_, instanceDir) => {
   }
 
   return results.map(({ filename, size, sha256 }) => ({ filename, size, sha256 }));
+});
+
+// ── Admin: gestion mods MySQL + GitHub Release ────────────────────────────────
+
+function githubApiCall(method, apiPath, body, token) {
+  const https = require('https');
+  const bodyStr = body ? JSON.stringify(body) : null;
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: apiPath,
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'User-Agent': 'TerraNova-Launcher',
+        Accept: 'application/vnd.github.v3+json',
+        ...(bodyStr ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr) } : {}),
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', c => { data += c; });
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, body: JSON.parse(data) }); }
+        catch { resolve({ status: res.statusCode, body: data }); }
+      });
+    });
+    req.on('error', reject);
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+async function ensureModsRelease(token, owner, repo) {
+  const getRes = await githubApiCall('GET', `/repos/${owner}/${repo}/releases/tags/mods`, null, token);
+  if (getRes.status === 200) return getRes.body.id;
+  const createRes = await githubApiCall('POST', `/repos/${owner}/${repo}/releases`, {
+    tag_name: 'mods',
+    name: 'TerraNova Mods',
+    body: 'Mods de l\'instance TerraNova — géré automatiquement par le launcher admin.',
+    draft: false,
+    prerelease: true,
+  }, token);
+  if (createRes.status !== 201) throw new Error(`Impossible de créer la release mods: ${createRes.body?.message}`);
+  return createRes.body.id;
+}
+
+async function uploadReleaseAsset(releaseId, filePath, filename, token, owner, repo) {
+  const https = require('https');
+  const fileBuffer = fs.readFileSync(filePath);
+
+  // Supprimer l'asset existant si présent
+  const listRes = await githubApiCall('GET', `/repos/${owner}/${repo}/releases/${releaseId}/assets`, null, token);
+  if (listRes.status === 200) {
+    const existing = listRes.body.find(a => a.name === filename);
+    if (existing) await githubApiCall('DELETE', `/repos/${owner}/${repo}/releases/assets/${existing.id}`, null, token);
+  }
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'uploads.github.com',
+      path: `/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${encodeURIComponent(filename)}`,
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'User-Agent': 'TerraNova-Launcher',
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': fileBuffer.length,
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', c => { data += c; });
+      res.on('end', () => {
+        try {
+          const body = JSON.parse(data);
+          resolve({ status: res.statusCode, url: body.browser_download_url });
+        } catch { resolve({ status: res.statusCode, url: null }); }
+      });
+    });
+    req.on('error', reject);
+    req.write(fileBuffer);
+    req.end();
+  });
+}
+
+ipcMain.handle('admin:initDb', async () => {
+  try {
+    await dbPool().execute(`
+      CREATE TABLE IF NOT EXISTS mods (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        filename VARCHAR(255) NOT NULL UNIQUE,
+        display_name VARCHAR(255),
+        sha256 VARCHAR(64) NOT NULL,
+        size INT NOT NULL DEFAULT 0,
+        download_url VARCHAR(500) NOT NULL,
+        required TINYINT(1) NOT NULL DEFAULT 1,
+        enabled TINYINT(1) NOT NULL DEFAULT 1,
+        added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('admin:uploadMods', async (_, { token, owner, repo, instanceDir }) => {
+  const r = await dialog.showOpenDialog(mainWindow, {
+    title: 'Sélectionner les fichiers mod à uploader',
+    filters: [{ name: 'Fichiers mod', extensions: ['jar'] }],
+    properties: ['openFile', 'multiSelections'],
+  });
+  if (r.canceled || !r.filePaths.length) return { success: false, canceled: true };
+
+  const crypto = require('crypto');
+  try {
+    const releaseId = await ensureModsRelease(token, owner, repo);
+    const results = [];
+
+    for (let i = 0; i < r.filePaths.length; i++) {
+      const filePath = r.filePaths[i];
+      const filename = path.basename(filePath);
+
+      mainWindow?.webContents.send('admin:uploadProgress', {
+        filename, step: 'upload', index: i, total: r.filePaths.length,
+      });
+
+      const stat   = fs.statSync(filePath);
+      const sha256 = crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+
+      const upload = await uploadReleaseAsset(releaseId, filePath, filename, token, owner, repo);
+      if (!upload.url) throw new Error(`Upload GitHub échoué pour ${filename} (HTTP ${upload.status})`);
+
+      const displayName = filename.replace(/[-_]/g, ' ').replace(/\.(jar|zip)$/i, '');
+      await dbPool().execute(
+        `INSERT INTO mods (filename, display_name, sha256, size, download_url)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE sha256=VALUES(sha256), size=VALUES(size), download_url=VALUES(download_url), display_name=VALUES(display_name)`,
+        [filename, displayName, sha256, stat.size, upload.url]
+      );
+
+      // Copie locale pour test immédiat
+      if (instanceDir) {
+        const modsDir = path.join(instanceDir, 'mods');
+        fs.mkdirSync(modsDir, { recursive: true });
+        try { fs.copyFileSync(filePath, path.join(modsDir, filename)); } catch {}
+      }
+
+      results.push({ filename, sha256, size: stat.size, url: upload.url });
+    }
+
+    return { success: true, results };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('admin:listMods', async () => {
+  try {
+    const [rows] = await dbPool().execute(
+      'SELECT id, filename, display_name, sha256, size, download_url, required, enabled, added_at FROM mods ORDER BY enabled DESC, required DESC, filename ASC'
+    );
+    return { success: true, mods: rows };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('admin:updateMod', async (_, { id, field, value }) => {
+  const allowed = ['required', 'enabled', 'display_name'];
+  if (!allowed.includes(field)) return { success: false, error: 'Champ invalide' };
+  try {
+    await dbPool().execute(`UPDATE mods SET \`${field}\`=? WHERE id=?`, [value, id]);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('admin:deleteMod', async (_, { id }) => {
+  try {
+    await dbPool().execute('DELETE FROM mods WHERE id=?', [id]);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('mods:fetchList', async () => {
+  try {
+    const [rows] = await dbPool().execute(
+      'SELECT filename, sha256, size, download_url, required FROM mods WHERE enabled=1 ORDER BY filename ASC'
+    );
+    return { success: true, mods: rows };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
 });
