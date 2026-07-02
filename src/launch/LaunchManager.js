@@ -173,10 +173,49 @@ function getModernJvmArgs(instanceDir, customVersion) {
   return jvmArgs.filter(a => typeof a === 'string').map(resolve);
 }
 
+// ── Sélection automatique du meilleur Java 21+ ────────────────────────────────
+function pickBestJava21() {
+  const all = detectJava();
+  const candidates = all
+    .map(j => {
+      const v     = j.version;
+      const major = parseInt(v.startsWith('1.') ? v.split('.')[1] : v.split('.')[0]);
+      return { path: j.path, major };
+    })
+    .filter(j => j.major >= 21)
+    .sort((a, b) => a.major - b.major);
+  return candidates.length ? candidates[0].path : null;
+}
+
 // ── Lancement du jeu ──────────────────────────────────────────────────────────
 async function launchGame(opts, onProgress, onData, onClose) {
   const { session, instanceDir, version, loader, ramMb, javaPath, jvmArgs } = opts;
-  const java = javaPath || 'java';
+  let java = javaPath || 'java';
+
+  // Auto-détection Java 21+ si aucun chemin explicite configuré
+  if (java === 'java') {
+    const detected = pickBestJava21();
+    if (detected) {
+      java = detected;
+    } else {
+      // Vérifie si 'java' du PATH est >= 21
+      try {
+        const raw   = execSync('"java" -version 2>&1', { timeout: 4000, stdio: 'pipe' }).toString();
+        const match = raw.match(/version "([^"]+)"/);
+        if (match) {
+          const v     = match[1];
+          const major = parseInt(v.startsWith('1.') ? v.split('.')[1] : v.split('.')[0]);
+          if (major < 21) {
+            return { success: false, error: `Java 21 requis pour NeoForge (Java ${major} détecté). Installe Java 21 depuis adoptium.net puis relance.` };
+          }
+        } else {
+          return { success: false, error: 'Java introuvable. Installe Java 21 depuis adoptium.net et relance le launcher.' };
+        }
+      } catch {
+        return { success: false, error: 'Java introuvable. Installe Java 21 depuis adoptium.net et relance le launcher.' };
+      }
+    }
+  }
 
   // ── Détection et construction de la version custom ──
   let customVersion = null;
