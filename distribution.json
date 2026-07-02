@@ -1,53 +1,989 @@
 {
-    "version": "1.0.0",
-    "servers": [
+  "version": "1.0.0",
+  "servers": [
+    {
+      "id": "terranova",
+      "name": "TerraNova",
+      "description": "Serveur survie vanilla-like avec mods de confort.",
+      "instanceVersion": "4",
+      "changelog": "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",
+      "minecraftVersion": "1.21.1",
+      "loaderVersion": "21.1.233",
+      "forceUpdate": false,
+      "modules": [
         {
-            "id": "terranova",
-            "name": "TerraNova",
-            "description": "Serveur survie vanilla-like avec mods de confort.",
-            "instanceVersion": "3",
-            "changelog": "Migration vers NeoForge 21.1.233 + Minecraft 1.21.1. Java 21 requis.",
-            "minecraftVersion": "1.21.1",
-            "loaderVersion": "21.1.233",
-            "forceUpdate": false,
-            "modules": [
-                {
-                    "id": "terranova:biomes-o-plenty:1.21.1",
-                    "name": "Biomes O' Plenty",
-                    "type": "ForgeMod",
-                    "required": true,
-                    "artifact": {
-                        "path": "mods/biomes-o-plenty-1.21.1.jar",
-                        "url": "https://cdn.terranova.fr/mods/biomes-o-plenty-1.21.1.jar",
-                        "sha256": "placeholder",
-                        "size": 8234567
-                    }
-                },
-                {
-                    "id": "terranova:journeymap:1.21.1",
-                    "name": "JourneyMap",
-                    "type": "ForgeMod",
-                    "required": false,
-                    "artifact": {
-                        "path": "mods/journeymap-1.21.1.jar",
-                        "url": "https://cdn.terranova.fr/mods/journeymap-1.21.1.jar",
-                        "sha256": "placeholder",
-                        "size": 2890000
-                    }
-                },
-                {
-                    "id": "terranova:just-enough-items:1.21.1",
-                    "name": "Just Enough Items",
-                    "type": "ForgeMod",
-                    "required": false,
-                    "artifact": {
-                        "path": "mods/just-enough-items-1.21.1.jar",
-                        "url": "https://cdn.terranova.fr/mods/just-enough-items-1.21.1.jar",
-                        "sha256": "placeholder",
-                        "size": 1540000
-                    }
-                }
-            ]
+          "id": "terranova:biomes-o-plenty-1.21.1:auto",
+          "name": "Biomes O' Plenty",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/biomes-o-plenty-1.21.1.jar",
+            "url": "https://cdn.terranova.fr/mods/biomes-o-plenty-1.21.1.jar",
+            "sha256": "placeholder",
+            "size": 8234567
+          }
+        },
+        {
+          "id": "terranova:journeymap-1.21.1:auto",
+          "name": "JourneyMap",
+          "type": "ForgeMod",
+          "required": false,
+          "artifact": {
+            "path": "mods/journeymap-1.21.1.jar",
+            "url": "https://cdn.terranova.fr/mods/journeymap-1.21.1.jar",
+            "sha256": "placeholder",
+            "size": 2890000
+          }
+        },
+        {
+          "id": "terranova:just-enough-items-1.21.1:auto",
+          "name": "Just Enough Items",
+          "type": "ForgeMod",
+          "required": false,
+          "artifact": {
+            "path": "mods/just-enough-items-1.21.1.jar",
+            "url": "https://cdn.terranova.fr/mods/just-enough-items-1.21.1.jar",
+            "sha256": "placeholder",
+            "size": 1540000
+          }
+        },
+        {
+          "id": "terranova:[1.21.1] SecurityCraft v1.10:auto",
+          "name": "[1.21.1] SecurityCraft v1.10",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/[1.21.1] SecurityCraft v1.10.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/[1.21.1] SecurityCraft v1.10.jar",
+            "sha256": "ed98e1ad30360ec36d58962ce9d3891e2e6c1a3c68ed07f9545040b9ced85ede",
+            "size": 4809883
+          }
+        },
+        {
+          "id": "terranova:accessories_cclayer-9.3.1-beta.27+1.21.1-neoforge:auto",
+          "name": "accessories cclayer 9.3.1 beta.27+1.21.1 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/accessories_cclayer-9.3.1-beta.27+1.21.1-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/accessories_cclayer-9.3.1-beta.27+1.21.1-neoforge.jar",
+            "sha256": "8e8111731d7ee7dcc9e6527698072097c3983c0c7c3a111eb586522ee941f865",
+            "size": 468106
+          }
+        },
+        {
+          "id": "terranova:accessories-neoforge-1.1.0-beta.42+1.21.1:auto",
+          "name": "accessories neoforge 1.1.0 beta.42+1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/accessories-neoforge-1.1.0-beta.42+1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/accessories-neoforge-1.1.0-beta.42+1.21.1.jar",
+            "sha256": "c08a2214cab6c1a7f7c6e913e0f034ebb1b22e66b32ea737f8d2ba9d7fd2ae3d",
+            "size": 1059419
+          }
+        },
+        {
+          "id": "terranova:amendments-1.21-1.2.24-neoforge:auto",
+          "name": "amendments 1.21 1.2.24 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/amendments-1.21-1.2.24-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/amendments-1.21-1.2.24-neoforge.jar",
+            "sha256": "9baa403224a3b58b63f14020242eb73ef1bebc07402b37dd0f071de95a8a4db7",
+            "size": 844102
+          }
+        },
+        {
+          "id": "terranova:architectury-13.0.8-neoforge:auto",
+          "name": "architectury 13.0.8 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/architectury-13.0.8-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/architectury-13.0.8-neoforge.jar",
+            "sha256": "5ec578f814e8cca87aeffa6e424032e78d9ea5ea6b603dd834c2dc13c31141ee",
+            "size": 584004
+          }
+        },
+        {
+          "id": "terranova:armourersworkshop-forge-1.21.1-3.2.1-beta:auto",
+          "name": "armourersworkshop forge 1.21.1 3.2.1 beta",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/armourersworkshop-forge-1.21.1-3.2.1-beta.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/armourersworkshop-forge-1.21.1-3.2.1-beta.jar",
+            "sha256": "2d649fba2b54ab4d7eaedfb41059f087594bb0440a8eb396faaf14d9a4b458cb",
+            "size": 5867159
+          }
+        },
+        {
+          "id": "terranova:automobility-0.5.0.c+1.21.1-neoforge:auto",
+          "name": "automobility 0.5.0.c+1.21.1 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/automobility-0.5.0.c+1.21.1-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/automobility-0.5.0.c+1.21.1-neoforge.jar",
+            "sha256": "edf01d400db7774fda06ce1195a48c59d31afe24ec975d0eee2bcc0f42016395",
+            "size": 1325899
+          }
+        },
+        {
+          "id": "terranova:balm-neoforge-1.21.1-21.0.31:auto",
+          "name": "balm neoforge 1.21.1 21.0.31",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/balm-neoforge-1.21.1-21.0.31.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/balm-neoforge-1.21.1-21.0.31.jar",
+            "sha256": "90bc40f777a041b447b5bf2811c12bcb1885e74b459c64509244e2f632f70f60",
+            "size": 434486
+          }
+        },
+        {
+          "id": "terranova:burgermod-neoforge-2.10.3-1.21.1:auto",
+          "name": "burgermod neoforge 2.10.3 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/burgermod-neoforge-2.10.3-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/burgermod-neoforge-2.10.3-1.21.1.jar",
+            "sha256": "e2cc43168b155a17a72a39f5b66120601c6506b58445592f6c45bca9f0d0d6d7",
+            "size": 185554
+          }
+        },
+        {
+          "id": "terranova:butcher-3.5.5-neoforge-1.21.1:auto",
+          "name": "butcher 3.5.5 neoforge 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/butcher-3.5.5-neoforge-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/butcher-3.5.5-neoforge-1.21.1.jar",
+            "sha256": "789321107e9ca6623c12f6920d62e1e8cdd7d9384aba1ea9fb7446c74cefeb8f",
+            "size": 33618208
+          }
+        },
+        {
+          "id": "terranova:camera-neoforge-1.21.1-1.0.20:auto",
+          "name": "camera neoforge 1.21.1 1.0.20",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/camera-neoforge-1.21.1-1.0.20.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/camera-neoforge-1.21.1-1.0.20.jar",
+            "sha256": "d5a1a16c50ff95674a198da5adbdb443132e198cbae676b5af68379042e0cc04",
+            "size": 303068
+          }
+        },
+        {
+          "id": "terranova:cloth-config-15.0.140-neoforge (1):auto",
+          "name": "cloth config 15.0.140 neoforge (1)",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/cloth-config-15.0.140-neoforge (1).jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/cloth-config-15.0.140-neoforge (1).jar",
+            "sha256": "65e722e0d98431a07c45f8bdd8d529a217cc8c175fde1740248bd5c1b4f3c0d4",
+            "size": 1163890
+          }
+        },
+        {
+          "id": "terranova:Clumps-neoforge-1.21.1-19.0.0.1:auto",
+          "name": "Clumps neoforge 1.21.1 19.0.0.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/Clumps-neoforge-1.21.1-19.0.0.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/Clumps-neoforge-1.21.1-19.0.0.1.jar",
+            "sha256": "b524ccdace2ef8fd19f5b2074f7de1103ac5065c52553f064c00e098346c293e",
+            "size": 18382
+          }
+        },
+        {
+          "id": "terranova:connector-2.0.0-beta.7+1.21.1-full:auto",
+          "name": "connector 2.0.0 beta.7+1.21.1 full",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/connector-2.0.0-beta.7+1.21.1-full.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/connector-2.0.0-beta.7+1.21.1-full.jar",
+            "sha256": "8cc006fa3634ff14c1265b5f23ff18108e9d81c21627f5ba7a6e9b455de6e138",
+            "size": 4485116
+          }
+        },
+        {
+          "id": "terranova:ConnectorExtras-1.12.1+1.21.1:auto",
+          "name": "ConnectorExtras 1.12.1+1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/ConnectorExtras-1.12.1+1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/ConnectorExtras-1.12.1+1.21.1.jar",
+            "sha256": "ee89c3425b9a4bff766aaff02ccf8110c06f5da6ef5d71974556885cf25d4880",
+            "size": 86284
+          }
+        },
+        {
+          "id": "terranova:copycats-3.0.2+mc.1.21.1-neoforge:auto",
+          "name": "copycats 3.0.2+mc.1.21.1 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/copycats-3.0.2+mc.1.21.1-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/copycats-3.0.2+mc.1.21.1-neoforge.jar",
+            "sha256": "8caf0e53cf250e1cc2811d49e9ea46f3c691f65c3522b55c19e24a411d1354ef",
+            "size": 1790416
+          }
+        },
+        {
+          "id": "terranova:corpse-neoforge-1.21.1-1.1.7:auto",
+          "name": "corpse neoforge 1.21.1 1.1.7",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/corpse-neoforge-1.21.1-1.1.7.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/corpse-neoforge-1.21.1-1.1.7.jar",
+            "sha256": "95ea01086d5acf6efa4cac798053d5d2879696fe47c9fb77edde797488be7fcb",
+            "size": 247000
+          }
+        },
+        {
+          "id": "terranova:craftedcore-5.8:auto",
+          "name": "craftedcore 5.8",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/craftedcore-5.8.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/craftedcore-5.8.jar",
+            "sha256": "4c08ebda8655862dab9fa2bfcf11b5cd2d47d226a2f6a6faf68df0de4ee676e1",
+            "size": 328153
+          }
+        },
+        {
+          "id": "terranova:CraftTweaker-neoforge-1.21.1-21.0.27:auto",
+          "name": "CraftTweaker neoforge 1.21.1 21.0.27",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/CraftTweaker-neoforge-1.21.1-21.0.27.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/CraftTweaker-neoforge-1.21.1-21.0.27.jar",
+            "sha256": "f24f5e2cb682c309fd0922afd6998e26f9b52e24e3e28fc9fdd22c7cf05e45ca",
+            "size": 3460568
+          }
+        },
+        {
+          "id": "terranova:crazyboom_mod-3.2.0-neoforge-1.21.1:auto",
+          "name": "crazyboom mod 3.2.0 neoforge 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/crazyboom_mod-3.2.0-neoforge-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/crazyboom_mod-3.2.0-neoforge-1.21.1.jar",
+            "sha256": "daacc8f59c2a46e2e0da1acb4671f5237bf1a5cd168d2984d26ba721ee19e75c",
+            "size": 3633148
+          }
+        },
+        {
+          "id": "terranova:crazythings-1.1.2-neoforge-1.21.1 (1):auto",
+          "name": "crazythings 1.1.2 neoforge 1.21.1 (1)",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/crazythings-1.1.2-neoforge-1.21.1 (1).jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/crazythings-1.1.2-neoforge-1.21.1 (1).jar",
+            "sha256": "9db6fb6b87d7acf7f0156657b94c2250a7e368cdf0a64e191fca1bc301ae1533",
+            "size": 18884739
+          }
+        },
+        {
+          "id": "terranova:create-1.21.1-6.0.2:auto",
+          "name": "create 1.21.1 6.0.2",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/create-1.21.1-6.0.2.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/create-1.21.1-6.0.2.jar",
+            "sha256": "c33e0ad1925949ad39681d8687d53b5344beb6c43cb7b7cc638c60a379d5e7b8",
+            "size": 18177431
+          }
+        },
+        {
+          "id": "terranova:create-stuff-additions1.21.1_v2.1.0e:auto",
+          "name": "create stuff additions1.21.1 v2.1.0e",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/create-stuff-additions1.21.1_v2.1.0e.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/create-stuff-additions1.21.1_v2.1.0e.jar",
+            "sha256": "fb5d8f0f88af98b5901ccd9d0f3ad1231f0796366d48ddfe5d537df6257736bd",
+            "size": 1318700
+          }
+        },
+        {
+          "id": "terranova:CreativeCore_NEOFORGE_v2.13.0_mc1.21.1:auto",
+          "name": "CreativeCore NEOFORGE v2.13.0 mc1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/CreativeCore_NEOFORGE_v2.13.0_mc1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/CreativeCore_NEOFORGE_v2.13.0_mc1.21.1.jar",
+            "sha256": "6a37560f435e61010d5aa2df5536cac6bd1e50f0de521c3da7950227586d6f04",
+            "size": 1196293
+          }
+        },
+        {
+          "id": "terranova:emotecraft-for-MC1.21.1-2.4.10-neoforge:auto",
+          "name": "emotecraft for MC1.21.1 2.4.10 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/emotecraft-for-MC1.21.1-2.4.10-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/emotecraft-for-MC1.21.1-2.4.10-neoforge.jar",
+            "sha256": "0fa4b8e40dd05d71c40148ff659c9eabb61ec4aa0de9790b2feb90bd780b23f8",
+            "size": 861734
+          }
+        },
+        {
+          "id": "terranova:etched-4.0.0:auto",
+          "name": "etched 4.0.0",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/etched-4.0.0.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/etched-4.0.0.jar",
+            "sha256": "f5abdd803198a07260dd8321eabf15d9cae061fdd283fd610a64860fb97e3199",
+            "size": 614408
+          }
+        },
+        {
+          "id": "terranova:FarmersDelight-1.21.1-1.2.8:auto",
+          "name": "FarmersDelight 1.21.1 1.2.8",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/FarmersDelight-1.21.1-1.2.8.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/FarmersDelight-1.21.1-1.2.8.jar",
+            "sha256": "801d2ed14e0364b575573dcbff88004e043a002b1717e6207717c2b1036879d1",
+            "size": 2949275
+          }
+        },
+        {
+          "id": "terranova:ferritecore-7.0.2-neoforge:auto",
+          "name": "ferritecore 7.0.2 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/ferritecore-7.0.2-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/ferritecore-7.0.2-neoforge.jar",
+            "sha256": "235e2081dfe050d7642b0d432a786668f079168505ba5d6bf0ec70c962a36539",
+            "size": 118911
+          }
+        },
+        {
+          "id": "terranova:fire_extinguisher-neoforge-1.21.1-8.3.0:auto",
+          "name": "fire extinguisher neoforge 1.21.1 8.3.0",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/fire_extinguisher-neoforge-1.21.1-8.3.0.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/fire_extinguisher-neoforge-1.21.1-8.3.0.jar",
+            "sha256": "01989caf0a9828423022938d408024f0fb66c2e60b7b59104660f46e5b72fc62",
+            "size": 336443
+          }
+        },
+        {
+          "id": "terranova:ForgeConfigAPIPort-v21.1.3-1.21.1-NeoForge:auto",
+          "name": "ForgeConfigAPIPort v21.1.3 1.21.1 NeoForge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/ForgeConfigAPIPort-v21.1.3-1.21.1-NeoForge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/ForgeConfigAPIPort-v21.1.3-1.21.1-NeoForge.jar",
+            "sha256": "686de8cd2e69002650394f8e10d154b4b2066dad369e41c7f11b3fa0154a7139",
+            "size": 104469
+          }
+        },
+        {
+          "id": "terranova:forgified-fabric-api-0.107.0+2.0.25+1.21.1:auto",
+          "name": "forgified fabric api 0.107.0+2.0.25+1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/forgified-fabric-api-0.107.0+2.0.25+1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/forgified-fabric-api-0.107.0+2.0.25+1.21.1.jar",
+            "sha256": "1cb661bed23c273685efa7622e889e4e640db4de88c9a05273cdfb3506f3411f",
+            "size": 5506093
+          }
+        },
+        {
+          "id": "terranova:framework-neoforge-1.21.1-0.9.6:auto",
+          "name": "framework neoforge 1.21.1 0.9.6",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/framework-neoforge-1.21.1-0.9.6.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/framework-neoforge-1.21.1-0.9.6.jar",
+            "sha256": "9178e6613cd41efaa3b50e3d2e0b25e1efde5beb4e23aeb23f0b88d778d52fd7",
+            "size": 312915
+          }
+        },
+        {
+          "id": "terranova:ftb-essentials-neoforge-2101.1.6:auto",
+          "name": "ftb essentials neoforge 2101.1.6",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/ftb-essentials-neoforge-2101.1.6.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/ftb-essentials-neoforge-2101.1.6.jar",
+            "sha256": "ce94140f3d3ecd390403bee28dfd31055df08c3648642ff9f3362177969d9427",
+            "size": 195165
+          }
+        },
+        {
+          "id": "terranova:ftb-library-neoforge-2101.1.13:auto",
+          "name": "ftb library neoforge 2101.1.13",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/ftb-library-neoforge-2101.1.13.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/ftb-library-neoforge-2101.1.13.jar",
+            "sha256": "84a43d92f087868a1e632a1a47cb158e7976c427910e2d3b491a3eb941739742",
+            "size": 885218
+          }
+        },
+        {
+          "id": "terranova:geckolib-neoforge-1.21.1-4.7.5.1:auto",
+          "name": "geckolib neoforge 1.21.1 4.7.5.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/geckolib-neoforge-1.21.1-4.7.5.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/geckolib-neoforge-1.21.1-4.7.5.1.jar",
+            "sha256": "18ed56f73327525fa96bf90c5e98c044641d2287447215810a464a77468b5e0a",
+            "size": 592730
+          }
+        },
+        {
+          "id": "terranova:goatduloat-2.1.6-neoforge-1.21.1:auto",
+          "name": "goatduloat 2.1.6 neoforge 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/goatduloat-2.1.6-neoforge-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/goatduloat-2.1.6-neoforge-1.21.1.jar",
+            "sha256": "77cf99cbcea08208f558597b8409b7eb2369e7d98f7bf823e31bdec7b418935d",
+            "size": 40784066
+          }
+        },
+        {
+          "id": "terranova:goblintraders-neoforge-1.21.1-1.11.2:auto",
+          "name": "goblintraders neoforge 1.21.1 1.11.2",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/goblintraders-neoforge-1.21.1-1.11.2.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/goblintraders-neoforge-1.21.1-1.11.2.jar",
+            "sha256": "523aebc80baab377072fe26c5ff9d1c3649764f185131e7849acd99833d406dd",
+            "size": 462245
+          }
+        },
+        {
+          "id": "terranova:hennyessentials-neoforge-1.21.1-1.0.4-H3 (1):auto",
+          "name": "hennyessentials neoforge 1.21.1 1.0.4 H3 (1)",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/hennyessentials-neoforge-1.21.1-1.0.4-H3 (1).jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/hennyessentials-neoforge-1.21.1-1.0.4-H3 (1).jar",
+            "sha256": "d846da24a56bbbbb2d56e90fb0230858d7f5573dd07e0ea09e47e2824da2ba7f",
+            "size": 250786
+          }
+        },
+        {
+          "id": "terranova:iris-neoforge-1.8.12+mc1.21.1:auto",
+          "name": "iris neoforge 1.8.12+mc1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/iris-neoforge-1.8.12+mc1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/iris-neoforge-1.8.12+mc1.21.1.jar",
+            "sha256": "3e3f94d2d5cdcb8145c4385d521974aa2d8669b2cc212351f70cf06488182e83",
+            "size": 2438548
+          }
+        },
+        {
+          "id": "terranova:jei-1.21.1-neoforge-19.21.0.247:auto",
+          "name": "jei 1.21.1 neoforge 19.21.0.247",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/jei-1.21.1-neoforge-19.21.0.247.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/jei-1.21.1-neoforge-19.21.0.247.jar",
+            "sha256": "413680b163b2f4477409512e393b7f33133c4c395d55bbdf877791008b3ef702",
+            "size": 1442319
+          }
+        },
+        {
+          "id": "terranova:kubejs-neoforge-2101.7.1-build.181:auto",
+          "name": "kubejs neoforge 2101.7.1 build.181",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/kubejs-neoforge-2101.7.1-build.181.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/kubejs-neoforge-2101.7.1-build.181.jar",
+            "sha256": "7e1e11686383c5f1d9b869ff48a485873506e4f2d7833de73d236ba0b572baed",
+            "size": 1913809
+          }
+        },
+        {
+          "id": "terranova:livingthings-neoforge-1.21.1-2.3.0:auto",
+          "name": "livingthings neoforge 1.21.1 2.3.0",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/livingthings-neoforge-1.21.1-2.3.0.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/livingthings-neoforge-1.21.1-2.3.0.jar",
+            "sha256": "dbb2a21db7555b41325c107db872a0304066b7c3eabb5e1e0cb010c294bbaca5",
+            "size": 962953
+          }
+        },
+        {
+          "id": "terranova:mcw-bridges-3.1.1-mc1.21.1neoforge:auto",
+          "name": "mcw bridges 3.1.1 mc1.21.1neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/mcw-bridges-3.1.1-mc1.21.1neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/mcw-bridges-3.1.1-mc1.21.1neoforge.jar",
+            "sha256": "9a140c6a1014f1f80b887fc629a4e1ef9ff3036b07a27803dcf44d32dd543b91",
+            "size": 652279
+          }
+        },
+        {
+          "id": "terranova:mcw-doors-1.1.2-mc1.21.1neoforge:auto",
+          "name": "mcw doors 1.1.2 mc1.21.1neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/mcw-doors-1.1.2-mc1.21.1neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/mcw-doors-1.1.2-mc1.21.1neoforge.jar",
+            "sha256": "d63cca96d7dca9af69ec6461b55986eba8fffc8d18dd0a8e8d9ca5536ee2cceb",
+            "size": 1193693
+          }
+        },
+        {
+          "id": "terranova:mcw-stairs-1.0.1-1.21.1neoforge:auto",
+          "name": "mcw stairs 1.0.1 1.21.1neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/mcw-stairs-1.0.1-1.21.1neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/mcw-stairs-1.0.1-1.21.1neoforge.jar",
+            "sha256": "ef5d3a25ddd74185641b69c75be3a81b4322ef74807ecfc7152ccf3ca09e3625",
+            "size": 516062
+          }
+        },
+        {
+          "id": "terranova:mcw-windows-2.3.0-mc1.21.1neoforge:auto",
+          "name": "mcw windows 2.3.0 mc1.21.1neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/mcw-windows-2.3.0-mc1.21.1neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/mcw-windows-2.3.0-mc1.21.1neoforge.jar",
+            "sha256": "336a76acb85d96f9ebd6ba334b775d69b91a81fea0866ff5642a8cd275d23bcc",
+            "size": 1250958
+          }
+        },
+        {
+          "id": "terranova:MEconomy-1.0.5-NeoForge-1.21.1 (1):auto",
+          "name": "MEconomy 1.0.5 NeoForge 1.21.1 (1)",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/MEconomy-1.0.5-NeoForge-1.21.1 (1).jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/MEconomy-1.0.5-NeoForge-1.21.1 (1).jar",
+            "sha256": "4eb33c96b7e4bafc24a4e58cdf0a75c0c7cf9b8b52892f9af311a7a5e0dca17a",
+            "size": 632465
+          }
+        },
+        {
+          "id": "terranova:Medieval-Decoration-Mod-NeoForge-1.21.1:auto",
+          "name": "Medieval Decoration Mod NeoForge 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/Medieval-Decoration-Mod-NeoForge-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/Medieval-Decoration-Mod-NeoForge-1.21.1.jar",
+            "sha256": "663ca78b3c7c0bb54c05e849dd2bd1d07e59add65a2433c6d3f118c8212ca2c3",
+            "size": 6786785
+          }
+        },
+        {
+          "id": "terranova:melody_neoforge_1.0.10_MC_1.21:auto",
+          "name": "melody neoforge 1.0.10 MC 1.21",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/melody_neoforge_1.0.10_MC_1.21.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/melody_neoforge_1.0.10_MC_1.21.jar",
+            "sha256": "6b973a4564703c531fc0eae09db08b07a38091e0a743c687b8d2049457e84871",
+            "size": 36096
+          }
+        },
+        {
+          "id": "terranova:modernfix-neoforge-5.22.0+mc1.21.1:auto",
+          "name": "modernfix neoforge 5.22.0+mc1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/modernfix-neoforge-5.22.0+mc1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/modernfix-neoforge-5.22.0+mc1.21.1.jar",
+            "sha256": "5761c60b4814917ab627d17c68bb55cb3ddd92bdc0733040cc18eb52411d351f",
+            "size": 533023
+          }
+        },
+        {
+          "id": "terranova:moonlight-1.21-2.19.5-neoforge:auto",
+          "name": "moonlight 1.21 2.19.5 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/moonlight-1.21-2.19.5-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/moonlight-1.21-2.19.5-neoforge.jar",
+            "sha256": "2ee6c9823f24851141fc678fdb9669ce23a2633ed8a5541af70c79a3943300c0",
+            "size": 1157151
+          }
+        },
+        {
+          "id": "terranova:owo-lib-neoforge-0.12.15.1-beta.3+1.21:auto",
+          "name": "owo lib neoforge 0.12.15.1 beta.3+1.21",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/owo-lib-neoforge-0.12.15.1-beta.3+1.21.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/owo-lib-neoforge-0.12.15.1-beta.3+1.21.jar",
+            "sha256": "64c8a6837c14a064acbc81020017ac41fda93503792168980f18422ebc6f61d8",
+            "size": 4800048
+          }
+        },
+        {
+          "id": "terranova:PlayerRevive_NEOFORGE_v2.0.36_mc1.21.1:auto",
+          "name": "PlayerRevive NEOFORGE v2.0.36 mc1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/PlayerRevive_NEOFORGE_v2.0.36_mc1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/PlayerRevive_NEOFORGE_v2.0.36_mc1.21.1.jar",
+            "sha256": "01788823cf1cb997e21b65d18408c49726fc734f7e7a4427392fafca91019a32",
+            "size": 5300100
+          }
+        },
+        {
+          "id": "terranova:plushie_buddies-0.1.6-neofroge-1.21.1:auto",
+          "name": "plushie buddies 0.1.6 neofroge 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/plushie_buddies-0.1.6-neofroge-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/plushie_buddies-0.1.6-neofroge-1.21.1.jar",
+            "sha256": "0d7a111a003f4f89c7dc91d9c9b069d1e60b8794bad9e739fcafa159c05a1150",
+            "size": 395135
+          }
+        },
+        {
+          "id": "terranova:pointblank-neoforge-1.21-1.9.6:auto",
+          "name": "pointblank neoforge 1.21 1.9.6",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/pointblank-neoforge-1.21-1.9.6.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/pointblank-neoforge-1.21-1.9.6.jar",
+            "sha256": "a2dd083c90d428f69592eeec53dc28b81a59a0f364af6da335a8bcb42f7f5d2b",
+            "size": 17475163
+          }
+        },
+        {
+          "id": "terranova:refurbished_furniture-neoforge-1.21.1-1.0.16 (1):auto",
+          "name": "refurbished furniture neoforge 1.21.1 1.0.16 (1)",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/refurbished_furniture-neoforge-1.21.1-1.0.16 (1).jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/refurbished_furniture-neoforge-1.21.1-1.0.16 (1).jar",
+            "sha256": "2eda66b4aadfd1bb4715d934bf2476d1ed87b842735e29562ba5da6e9b001c99",
+            "size": 7124347
+          }
+        },
+        {
+          "id": "terranova:rhino-2101.2.7-build.74:auto",
+          "name": "rhino 2101.2.7 build.74",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/rhino-2101.2.7-build.74.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/rhino-2101.2.7-build.74.jar",
+            "sha256": "41fcb108483c7b1aef165694e1069463942f32863bae0e751b6b2d8194df3493",
+            "size": 874323
+          }
+        },
+        {
+          "id": "terranova:selfexpression_slim-1.5-neoforge-1.21.1:auto",
+          "name": "selfexpression slim 1.5 neoforge 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/selfexpression_slim-1.5-neoforge-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/selfexpression_slim-1.5-neoforge-1.21.1.jar",
+            "sha256": "89a5718d18b316553549942412b9d82644624138d4f6b4afdded27e1cad4910e",
+            "size": 1305972
+          }
+        },
+        {
+          "id": "terranova:selfexpression-2.21.2-neoforge-1.21.1:auto",
+          "name": "selfexpression 2.21.2 neoforge 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/selfexpression-2.21.2-neoforge-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/selfexpression-2.21.2-neoforge-1.21.1.jar",
+            "sha256": "2e6c2497367c26363c86e468f15e339ae08564e8f5477dee042eedaa57e965e9",
+            "size": 6622011
+          }
+        },
+        {
+          "id": "terranova:simpleplanes-1.21.1-5.3.6:auto",
+          "name": "simpleplanes 1.21.1 5.3.6",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/simpleplanes-1.21.1-5.3.6.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/simpleplanes-1.21.1-5.3.6.jar",
+            "sha256": "6351f873fd350fccafa0473fd897f88c6e2746c6b0928af522ecfd805add164f",
+            "size": 903381
+          }
+        },
+        {
+          "id": "terranova:sodium-neoforge-0.6.13+mc1.21.1:auto",
+          "name": "sodium neoforge 0.6.13+mc1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/sodium-neoforge-0.6.13+mc1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/sodium-neoforge-0.6.13+mc1.21.1.jar",
+            "sha256": "7acd7af2ef75ec883a6872c17494ead65e38025151eb08a1d60e36d34377f403",
+            "size": 1162994
+          }
+        },
+        {
+          "id": "terranova:sophisticatedbackpacks-1.21.1-3.24.15.1250:auto",
+          "name": "sophisticatedbackpacks 1.21.1 3.24.15.1250",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/sophisticatedbackpacks-1.21.1-3.24.15.1250.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/sophisticatedbackpacks-1.21.1-3.24.15.1250.jar",
+            "sha256": "cf828652c9a9db7fbd0e6ae1d69f203e9907e9af568b61bae29875f1e39342c1",
+            "size": 926869
+          }
+        },
+        {
+          "id": "terranova:sophisticatedcore-1.21.1-1.3.50.1004:auto",
+          "name": "sophisticatedcore 1.21.1 1.3.50.1004",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/sophisticatedcore-1.21.1-1.3.50.1004.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/sophisticatedcore-1.21.1-1.3.50.1004.jar",
+            "sha256": "ef9eaec218e01e67b834f8f4a57cf7606fa0dc02a7edb932ad5b160045e2d477",
+            "size": 1371648
+          }
+        },
+        {
+          "id": "terranova:sophisticatedstorage-1.21.1-1.4.38.1166:auto",
+          "name": "sophisticatedstorage 1.21.1 1.4.38.1166",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/sophisticatedstorage-1.21.1-1.4.38.1166.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/sophisticatedstorage-1.21.1-1.4.38.1166.jar",
+            "sha256": "26e5ea1b881aa52d909d851c627f9cccbf263fac945e36657c4f618aad3a4d58",
+            "size": 1597690
+          }
+        },
+        {
+          "id": "terranova:supermartijn642configlib-1.1.8-neoforge-mc1.21:auto",
+          "name": "supermartijn642configlib 1.1.8 neoforge mc1.21",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/supermartijn642configlib-1.1.8-neoforge-mc1.21.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/supermartijn642configlib-1.1.8-neoforge-mc1.21.jar",
+            "sha256": "d2ba7b839a2268e4e223457e813d11aa2476c3bf708a7bba691d8fc851778a4b",
+            "size": 207514
+          }
+        },
+        {
+          "id": "terranova:supermartijn642corelib-1.1.18a-neoforge-mc1.21:auto",
+          "name": "supermartijn642corelib 1.1.18a neoforge mc1.21",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/supermartijn642corelib-1.1.18a-neoforge-mc1.21.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/supermartijn642corelib-1.1.18a-neoforge-mc1.21.jar",
+            "sha256": "6f43f2fa77968569927edefde859f1c46d7317c5519cdcefea729e9b84342420",
+            "size": 518643
+          }
+        },
+        {
+          "id": "terranova:supplementaries-1.21-3.3.3-neoforge:auto",
+          "name": "supplementaries 1.21 3.3.3 neoforge",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/supplementaries-1.21-3.3.3-neoforge.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/supplementaries-1.21-3.3.3-neoforge.jar",
+            "sha256": "908007d847370f8f5b6432aa3cffc95ac18c94498d1d7f5c34638a65afda5fb3",
+            "size": 12230805
+          }
+        },
+        {
+          "id": "terranova:the_fireworks-0.6.0-neoforge-1.21.1:auto",
+          "name": "the fireworks 0.6.0 neoforge 1.21.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/the_fireworks-0.6.0-neoforge-1.21.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/the_fireworks-0.6.0-neoforge-1.21.1.jar",
+            "sha256": "a4f873a5d63c5f5966ffc648cc063401202c913f59654d8488a13e7ba372d652",
+            "size": 1102639
+          }
+        },
+        {
+          "id": "terranova:trafficcraft-neoforge-1.21.1-1.1.3 (1):auto",
+          "name": "trafficcraft neoforge 1.21.1 1.1.3 (1)",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/trafficcraft-neoforge-1.21.1-1.1.3 (1).jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/trafficcraft-neoforge-1.21.1-1.1.3 (1).jar",
+            "sha256": "21eb68e5ecec6a000c6e266c189b653d6e46b8a7f298bb0c68a54a87dfa0448b",
+            "size": 6128519
+          }
+        },
+        {
+          "id": "terranova:voicechat-neoforge-1.21.1-2.5.28:auto",
+          "name": "voicechat neoforge 1.21.1 2.5.28",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/voicechat-neoforge-1.21.1-2.5.28.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/voicechat-neoforge-1.21.1-2.5.28.jar",
+            "sha256": "36868bd86f47c3e2e7f6e599e8fc91d4351583aefd187d71d4c1158ab92a46a1",
+            "size": 6142856
+          }
+        },
+        {
+          "id": "terranova:walkers-5.7:auto",
+          "name": "walkers 5.7",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/walkers-5.7.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/walkers-5.7.jar",
+            "sha256": "c0ac3a36b2cb1c71cec972f547b247fd6dfed7e8367c16ea36a0f37894e66b4a",
+            "size": 512869
+          }
+        },
+        {
+          "id": "terranova:waterframes-NEOFORGE-mc1.21.1-v2.1.14:auto",
+          "name": "waterframes NEOFORGE mc1.21.1 v2.1.14",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/waterframes-NEOFORGE-mc1.21.1-v2.1.14.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/waterframes-NEOFORGE-mc1.21.1-v2.1.14.jar",
+            "sha256": "e311f2bf537fdb3babfef78a03591133cbfdf4d9f6ece7ed6ec85479a68976db",
+            "size": 242511
+          }
+        },
+        {
+          "id": "terranova:watermedia-2.1.24:auto",
+          "name": "watermedia 2.1.24",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/watermedia-2.1.24.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/watermedia-2.1.24.jar",
+            "sha256": "788d201ab91dfd89be8df5b76c2b89507cb8bfe44d3ce9ed0347aa1e0751dd7a",
+            "size": 37853835
+          }
+        },
+        {
+          "id": "terranova:waystones-neoforge-1.21.1-21.1.12:auto",
+          "name": "waystones neoforge 1.21.1 21.1.12",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/waystones-neoforge-1.21.1-21.1.12.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/waystones-neoforge-1.21.1-21.1.12.jar",
+            "sha256": "1577f69ef6a71028dbe3fb8714f73ebb707e505b9f7fbdcdc996ae253799971a",
+            "size": 838007
+          }
+        },
+        {
+          "id": "terranova:xercamusic-1.21.1-1.0.0:auto",
+          "name": "xercamusic 1.21.1 1.0.0",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/xercamusic-1.21.1-1.0.0.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/xercamusic-1.21.1-1.0.0.jar",
+            "sha256": "812ea508167585100344fb93013c90272e2bbbc8b7c103f60e2a22b6ba5f113b",
+            "size": 7714481
+          }
+        },
+        {
+          "id": "terranova:xercapaint-1.21.1-1.0.1:auto",
+          "name": "xercapaint 1.21.1 1.0.1",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/xercapaint-1.21.1-1.0.1.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/xercapaint-1.21.1-1.0.1.jar",
+            "sha256": "c901dd88eff15a66fe3255bcf2fa9f1848d855e38941b158c00b764fba6c2c34",
+            "size": 400450
+          }
+        },
+        {
+          "id": "terranova:xtonesreworked-1.1.0-NF-1.21_21.0.167:auto",
+          "name": "xtonesreworked 1.1.0 NF 1.21 21.0.167",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/xtonesreworked-1.1.0-NF-1.21_21.0.167.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/xtonesreworked-1.1.0-NF-1.21_21.0.167.jar",
+            "sha256": "ef52120add22e898b8f9483f7d3b2a7292381c7eaeb886170e47cf4dcab2ac0e",
+            "size": 1251599
+          }
+        },
+        {
+          "id": "terranova:yawp-1.21.1-neoforge-0.5.2-beta4:auto",
+          "name": "yawp 1.21.1 neoforge 0.5.2 beta4",
+          "type": "ForgeMod",
+          "required": true,
+          "artifact": {
+            "path": "mods/yawp-1.21.1-neoforge-0.5.2-beta4.jar",
+            "url": "https://github.com/ShadowLiveDiscord/terranova-launcher/releases/download/mods/yawp-1.21.1-neoforge-0.5.2-beta4.jar",
+            "sha256": "8bba2731c44eaf2becfc2512fea966f295f0f855c2454f5780995932ef330a41",
+            "size": 574921
+          }
         }
-    ]
+      ]
+    }
+  ]
 }
