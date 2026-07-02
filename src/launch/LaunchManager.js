@@ -1,8 +1,8 @@
 'use strict';
 
 const { Client }   = require('minecraft-launcher-core');
-const { execSync } = require('child_process');
-const { spawn }    = require('child_process');
+const { execSync, spawnSync } = require('child_process');
+const { spawn }               = require('child_process');
 const fetch        = require('node-fetch');
 const path         = require('path');
 const fs           = require('fs');
@@ -200,7 +200,8 @@ async function launchGame(opts, onProgress, onData, onClose) {
     } else {
       // Vérifie si 'java' du PATH est >= 21
       try {
-        const raw   = execSync('"java" -version 2>&1', { timeout: 4000, stdio: 'pipe' }).toString();
+        const res   = spawnSync('java', ['-version'], { timeout: 2000, stdio: 'pipe', windowsHide: true });
+        const raw   = (res.stderr || res.stdout || Buffer.alloc(0)).toString();
         const match = raw.match(/version "([^"]+)"/);
         if (match) {
           const v     = match[1];
@@ -316,7 +317,14 @@ function detectJava() {
     if (seen.has(key)) return;
     seen.add(key);
     try {
-      const raw   = execSync(`"${javaExe}" -version 2>&1`, { timeout: 4000, stdio: 'pipe' }).toString();
+      // spawnSync + windowsHide empêche le popup Windows Store sur les PC sans Java
+      const res = spawnSync(javaExe, ['-version'], {
+        timeout:     2000,
+        stdio:       'pipe',
+        windowsHide: true,
+      });
+      // java -version écrit sur stderr
+      const raw   = (res.stderr || res.stdout || Buffer.alloc(0)).toString();
       const match = raw.match(/version "([^"]+)"/);
       if (match) {
         const v     = match[1];
